@@ -423,7 +423,7 @@ Identifica 2-4 peligros reales. Si no hay peligros evidentes, analiza riesgos po
   if (ai === 'gemini') {
     const key = document.getElementById('key-gemini').value;
     if (!key) throw new Error('Configura tu API key de Gemini en ⚙');
-    const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${key}`, {
+    const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${key}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ contents: [{ parts: [
@@ -617,7 +617,22 @@ function showToast(msg) {
   setTimeout(() => t.remove(), 3000);
 }
 
-document.addEventListener('DOMContentLoaded', loadConfig);
+document.addEventListener('DOMContentLoaded', () => {
+  loadConfig();
+  // Check if Gemini key is set, if not show settings automatically
+  setTimeout(() => {
+    const key = document.getElementById('key-gemini').value;
+    if (!key) {
+      openSettings();
+      // Add a visible alert inside the modal
+      const modal = document.querySelector('.modal');
+      const alert = document.createElement('div');
+      alert.style.cssText = 'background:#ff4d6d;color:white;border-radius:10px;padding:12px 14px;margin-bottom:14px;font-size:13px;font-weight:500;line-height:1.5;';
+      alert.innerHTML = '⚠️ Para usar la app debes pegar tu API Key de Gemini aquí abajo.<br><span style="font-size:11px;font-weight:400;opacity:0.9">Consíguela gratis en: aistudio.google.com/apikey</span>';
+      modal.insertBefore(alert, modal.children[1]);
+    }
+  }, 800);
+});
 </script>
 </body>
 </html>
