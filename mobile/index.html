@@ -336,14 +336,16 @@ function openSettings() {
   document.getElementById('settings-modal').classList.remove('hidden');
 }
 function closeSettings(e) {
-  if (!e || !e.target || e.target === document.getElementById('settings-modal')) {
+  if (!e || e.target === document.getElementById('settings-modal')) {
+    saveConfig();
     document.getElementById('settings-modal').classList.add('hidden');
+    document.getElementById('settings-modal').style.display = 'none';
   }
 }
 function forceCloseSettings() {
   saveConfig();
-  document.getElementById('settings-modal').style.display = 'none';
   document.getElementById('settings-modal').classList.add('hidden');
+  document.getElementById('settings-modal').style.display = 'none';
 }
 
 async function handleFiles(fileList) {
@@ -386,15 +388,10 @@ async function analyzePhoto(id) {
   const base64 = photo.dataUrl.split(',')[1];
   const mime = photo.dataUrl.split(';')[0].split(':')[1] || 'image/jpeg';
 
-  const workerUrl = document.getElementById('worker-url').value;
-
   try {
     let result;
-    if (workerUrl) {
-      result = await analyzeViaWorker(workerUrl, base64, mime, photo.area);
-    } else {
-      result = await analyzeDirectly(base64, mime, photo.area);
-    }
+    // Llama siempre directamente a la IA (Gemini, Claude, etc.) sin pasar por Worker
+    result = await analyzeDirectly(base64, mime, photo.area);
     photo.hazards = result.hazards || [];
     photo.recs = result.recs || [];
     photo.summary = result.summary || '';
