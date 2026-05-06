@@ -273,7 +273,7 @@
       <div style="font-size:10px;color:#4a5f72;margin-top:5px;font-family:'DM Mono',monospace">Configura después de desplegar el Worker</div>
     </div>
 
-    <button class="modal-close" onclick="closeSettings()">Cerrar</button>
+    <button class="modal-close" onclick="forceCloseSettings()">Cerrar</button>
   </div>
 </div>
 
@@ -336,9 +336,14 @@ function openSettings() {
   document.getElementById('settings-modal').classList.remove('hidden');
 }
 function closeSettings(e) {
-  if (!e || e.target === document.getElementById('settings-modal')) {
+  if (!e || !e.target || e.target === document.getElementById('settings-modal')) {
     document.getElementById('settings-modal').classList.add('hidden');
   }
+}
+function forceCloseSettings() {
+  saveConfig();
+  document.getElementById('settings-modal').style.display = 'none';
+  document.getElementById('settings-modal').classList.add('hidden');
 }
 
 async function handleFiles(fileList) {
