@@ -145,7 +145,7 @@
     </div>
   </div>
   <div class="header-right">
-    <div class="sync-badge" id="ai-badge">● GEMINI</div>
+    <div class="sync-badge" id="ai-badge">● v1/models/gemini-1.5-flash</div>
     <div class="settings-btn" onclick="openSettings()">⚙</div>
   </div>
 </div>
@@ -213,15 +213,15 @@
     <div class="modal-handle"></div>
     <div class="modal-title">Configuración de IA</div>
 
-    <div class="ai-option selected" id="opt-gemini" onclick="selectAI('gemini')">
+    <div class="ai-option selected" id="opt-v1/models/gemini-1.5-flash" onclick="selectAI('v1/models/gemini-1.5-flash')">
       <div class="ai-option-head">
-        <div class="ai-name">Google Gemini Flash</div>
+        <div class="ai-name">Google v1/models/gemini-1.5-flash Flash</div>
         <span class="ai-tag tag-free">GRATIS</span>
       </div>
       <div class="ai-desc">1,500 análisis/día · Sin tarjeta · Recomendado</div>
       <div class="api-key-field">
-        <div class="field-label" style="margin-top:8px">API Key de Gemini</div>
-        <input class="field-input" id="key-gemini" placeholder="AIza..." oninput="saveConfig()">
+        <div class="field-label" style="margin-top:8px">API Key de v1/models/gemini-1.5-flash</div>
+        <input class="field-input" id="key-v1/models/gemini-1.5-flash" placeholder="AIza..." oninput="saveConfig()">
         <div style="font-size:10px;color:#4a5f72;margin-top:5px;font-family:'DM Mono',monospace">Obtén tu key gratis en: aistudio.google.com</div>
       </div>
     </div>
@@ -279,15 +279,15 @@
 
 <script>
 let photos = [];
-let currentAI = 'gemini';
+let currentAI = 'v1/models/gemini-1.5-flash';
 let config = {};
 
 function loadConfig() {
   try {
     config = JSON.parse(localStorage.getItem('si_config') || '{}');
-    currentAI = config.ai || 'gemini';
+    currentAI = config.ai || 'v1/models/gemini-1.5-flash';
     if (config.workerUrl) document.getElementById('worker-url').value = config.workerUrl;
-    if (config.keyGemini) document.getElementById('key-gemini').value = config.keyGemini;
+    if (config.keyv1/models/gemini-1.5-flash) document.getElementById('key-v1/models/gemini-1.5-flash').value = config.keyv1/models/gemini-1.5-flash;
     if (config.keyClaude) document.getElementById('key-claude').value = config.keyClaude;
     if (config.keyOpenai) document.getElementById('key-openai').value = config.keyOpenai;
     if (config.keyCopilot) document.getElementById('key-copilot').value = config.keyCopilot;
@@ -304,7 +304,7 @@ function saveConfig() {
   config = {
     ai: currentAI,
     workerUrl: document.getElementById('worker-url').value,
-    keyGemini: document.getElementById('key-gemini').value,
+    keyv1/models/gemini-1.5-flash: document.getElementById('key-v1/models/gemini-1.5-flash').value,
     keyClaude: document.getElementById('key-claude').value,
     keyOpenai: document.getElementById('key-openai').value,
     keyCopilot: document.getElementById('key-copilot').value,
@@ -323,12 +323,12 @@ function saveSession() {
 
 function selectAI(ai) {
   currentAI = ai;
-  ['gemini','claude','openai','copilot'].forEach(id => {
+  ['v1/models/gemini-1.5-flash','claude','openai','copilot'].forEach(id => {
     document.getElementById('opt-'+id).classList.remove('selected');
   });
   document.getElementById('opt-'+ai).classList.add('selected');
-  const labels = { gemini:'● GEMINI', claude:'● CLAUDE', openai:'● GPT-4o', copilot:'● COPILOT' };
-  document.getElementById('ai-badge').textContent = labels[ai] || '● GEMINI';
+  const labels = { v1/models/gemini-1.5-flash:'● v1/models/gemini-1.5-flash', claude:'● CLAUDE', openai:'● GPT-4o', copilot:'● COPILOT' };
+  document.getElementById('ai-badge').textContent = labels[ai] || '● v1/models/gemini-1.5-flash';
   saveConfig();
 }
 
@@ -390,7 +390,7 @@ async function analyzePhoto(id) {
 
   try {
     let result;
-    // Llama siempre directamente a la IA (Gemini, Claude, etc.) sin pasar por Worker
+    // Llama siempre directamente a la IA (v1/models/gemini-1.5-flash, Claude, etc.) sin pasar por Worker
     result = await analyzeDirectly(base64, mime, photo.area);
     photo.hazards = result.hazards || [];
     photo.recs = result.recs || [];
@@ -420,15 +420,15 @@ async function analyzeDirectly(base64, mime, area) {
 {"hazards":[{"title":"...","description":"...","severity":"alta|media|baja"}],"recs":[{"title":"...","description":"..."}],"summary":"..."}
 Identifica 2-4 peligros reales. Si no hay peligros evidentes, analiza riesgos potenciales.`;
 
-  if (ai === 'gemini') {
-    const key = document.getElementById('key-gemini').value;
-    if (!key) throw new Error('Configura tu API key de Gemini en ⚙');
+  if (ai === 'v1/models/gemini-1.5-flash') {
+    const key = document.getElementById('key-v1/models/gemini-1.5-flash').value;
+    if (!key) throw new Error('Configura tu API key de v1/models/gemini-1.5-flash en ⚙');
     // Intenta múltiples modelos hasta que uno funcione
     const models = [
-      'gemini-1.5-flash',
-      'gemini-1.5-pro',
-      'gemini-pro-vision',
-      'gemini-1.0-pro-vision-latest'
+      'v1/models/gemini-1.5-flash-1.5-flash',
+      'v1/models/gemini-1.5-flash-1.5-pro',
+      'v1/models/gemini-1.5-flash-pro-vision',
+      'v1/models/gemini-1.5-flash-1.0-pro-vision-latest'
     ];
     let lastError = '';
     for (const model of models) {
@@ -447,7 +447,7 @@ Identifica 2-4 peligros reales. Si no hay peligros evidentes, analiza riesgos po
         return JSON.parse(txt.replace(/```json|```/g,'').trim());
       } catch(e) { lastError = e.message; continue; }
     }
-    throw new Error('Gemini: ' + lastError);
+    throw new Error('v1/models/gemini-1.5-flash: ' + lastError);
   }
 
   if (ai === 'claude') {
@@ -632,16 +632,16 @@ function showToast(msg) {
 
 document.addEventListener('DOMContentLoaded', () => {
   loadConfig();
-  // Check if Gemini key is set, if not show settings automatically
+  // Check if v1/models/gemini-1.5-flash key is set, if not show settings automatically
   setTimeout(() => {
-    const key = document.getElementById('key-gemini').value;
+    const key = document.getElementById('key-v1/models/gemini-1.5-flash').value;
     if (!key) {
       openSettings();
       // Add a visible alert inside the modal
       const modal = document.querySelector('.modal');
       const alert = document.createElement('div');
       alert.style.cssText = 'background:#ff4d6d;color:white;border-radius:10px;padding:12px 14px;margin-bottom:14px;font-size:13px;font-weight:500;line-height:1.5;';
-      alert.innerHTML = '⚠️ Para usar la app debes pegar tu API Key de Gemini aquí abajo.<br><span style="font-size:11px;font-weight:400;opacity:0.9">Consíguela gratis en: aistudio.google.com/apikey</span>';
+      alert.innerHTML = '⚠️ Para usar la app debes pegar tu API Key de v1/models/gemini-1.5-flash aquí abajo.<br><span style="font-size:11px;font-weight:400;opacity:0.9">Consíguela gratis en: aistudio.google.com/apikey</span>';
       modal.insertBefore(alert, modal.children[1]);
     }
   }, 800);
