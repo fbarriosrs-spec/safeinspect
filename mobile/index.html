@@ -423,7 +423,7 @@ Identifica 2-4 peligros reales. Si no hay peligros evidentes, analiza riesgos po
   if (ai === 'gemini') {
     const key = document.getElementById('key-gemini').value;
     if (!key) throw new Error('Configura tu API key de Gemini en ⚙');
-    const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${key}`, {
+    const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${key}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ contents: [{ parts: [
