@@ -423,18 +423,31 @@ Identifica 2-4 peligros reales. Si no hay peligros evidentes, analiza riesgos po
   if (ai === 'gemini') {
     const key = document.getElementById('key-gemini').value;
     if (!key) throw new Error('Configura tu API key de Gemini en ⚙');
-    const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${key}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ contents: [{ parts: [
-        { inline_data: { mime_type: mime, data: base64 } },
-        { text: prompt }
-      ]}] })
-    });
-    const d = await res.json();
-    if (d.error) throw new Error(d.error.message);
-    const txt = d.candidates?.[0]?.content?.parts?.[0]?.text || '';
-    return JSON.parse(txt.replace(/```json|```/g,'').trim());
+    // Intenta múltiples modelos hasta que uno funcione
+    const models = [
+      'gemini-1.5-flash',
+      'gemini-1.5-pro',
+      'gemini-pro-vision',
+      'gemini-1.0-pro-vision-latest'
+    ];
+    let lastError = '';
+    for (const model of models) {
+      try {
+        const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${key}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ contents: [{ parts: [
+            { inline_data: { mime_type: mime, data: base64 } },
+            { text: prompt }
+          ]}] })
+        });
+        const d = await res.json();
+        if (d.error) { lastError = d.error.message; continue; }
+        const txt = d.candidates?.[0]?.content?.parts?.[0]?.text || '';
+        return JSON.parse(txt.replace(/```json|```/g,'').trim());
+      } catch(e) { lastError = e.message; continue; }
+    }
+    throw new Error('Gemini: ' + lastError);
   }
 
   if (ai === 'claude') {
