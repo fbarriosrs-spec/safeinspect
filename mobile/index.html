@@ -8,6 +8,7 @@
 <meta name="theme-color" content="#0f1923">
 <title>SafeInspect — Campo</title>
 <link rel="manifest" href="manifest.json">
+<script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
@@ -635,17 +636,18 @@ function showExportPanel(data) {
 }
 
 function generateQR(data) {
-  // Use QR code via API - encode inspection summary as URL
-  const summary = {
+  const canvas = document.getElementById('qr-canvas');
+  if (!canvas) return;
+  
+  // Build compact data for QR (without images to keep QR small)
+  const qrPayload = JSON.stringify({
     id: data.id,
     empresa: data.empresa,
     inspector: data.inspector,
     area: data.area,
     fecha: data.fecha,
-    total_fotos: data.photos.length,
-    total_peligros: data.photos.reduce((a,p)=>a+p.hazards.length,0),
-    altas: data.photos.filter(p=>p.severity==='alta').length,
-    // Include compressed photo data
+    total: data.photos.length,
+    peligros: data.photos.reduce((a,p)=>a+p.hazards.length,0),
     photos: data.photos.map(p=>({
       name: p.name,
       area: p.area,
@@ -656,40 +658,38 @@ function generateQR(data) {
       notes: p.notes,
       dataUrl: p.dataUrl
     }))
-  };
-  
-  const jsonStr = JSON.stringify(summary);
-  const encoded = btoa(unescape(encodeURIComponent(jsonStr)));
-  
-  // Store for dashboard to read
-  localStorage.setItem('si_qr_latest', jsonStr);
-  
-  // Generate QR using qrcode library
-  const canvas = document.getElementById('qr-canvas');
-  if (!canvas) return;
-  
-  // Simple QR via API image
-  const img = document.createElement('img');
-  // Use a smaller payload - just the inspection ID and key data
-  const qrData = JSON.stringify({
-    id: data.id,
-    empresa: data.empresa,
-    inspector: data.inspector,
-    fecha: data.fecha,
-    total: data.photos.length,
-    peligros: data.photos.reduce((a,p)=>a+p.hazards.length,0)
   });
-  
-  const qrUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=' + encodeURIComponent(qrData);
-  img.src = qrUrl;
-  img.style.cssText = 'width:200px;height:200px;display:block;border-radius:8px;';
-  img.onerror = () => {
-    // Fallback: show copy button if QR fails
-    canvas.parentElement.innerHTML = '<div style="padding:20px;font-size:12px;color:#7d8590;">Usando modo texto...</div>';
+
+  // Draw QR directly on canvas using qrcode-generator
+  try {
+    const qr = qrcode(0, 'M');
+    qr.addData(qrPayload);
+    qr.make();
+    
+    const moduleCount = qr.getModuleCount();
+    const size = 240;
+    const cellSize = Math.floor(size / moduleCount);
+    canvas.width = cellSize * moduleCount;
+    canvas.height = cellSize * moduleCount;
+    const ctx = canvas.getContext('2d');
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = '#000000';
+    for (let row = 0; row < moduleCount; row++) {
+      for (let col = 0; col < moduleCount; col++) {
+        if (qr.isDark(row, col)) {
+          ctx.fillRect(col * cellSize, row * cellSize, cellSize, cellSize);
+        }
+      }
+    }
+    canvas.style.display = 'block';
+    canvas.style.borderRadius = '8px';
+  } catch(e) {
+    console.error('QR error:', e);
     showCopyFallback();
-  };
-  canvas.parentElement.replaceChild(img, canvas);
+  }
 }
+
 
 function showCopyFallback() {
   const panel = document.getElementById('export-panel');
