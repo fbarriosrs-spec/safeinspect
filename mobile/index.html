@@ -8,7 +8,6 @@
 <meta name="theme-color" content="#0f1923">
 <title>SafeInspect — Campo</title>
 <link rel="manifest" href="manifest.json">
-<script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
@@ -609,38 +608,15 @@ function showExportPanel(data) {
   const old = document.getElementById('export-panel');
   if (old) old.remove();
 
-  const panel = document.createElement('div');
-  panel.id = 'export-panel';
-  panel.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.92);z-index:999;display:flex;align-items:center;justify-content:center;flex-direction:column;padding:20px;';
-  panel.innerHTML = `
-    <div style="background:#161f2b;border-radius:20px;padding:24px 20px;width:100%;max-width:380px;text-align:center;border:1px solid rgba(255,255,255,0.1);">
-      <div style="font-size:16px;font-weight:600;color:#e8edf2;margin-bottom:4px;">✅ Inspección lista</div>
-      <div style="font-size:12px;color:#8a9db0;margin-bottom:20px;">${photos.length} foto(s) · ${photos.reduce((a,p)=>a+p.hazards.length,0)} peligros identificados</div>
-      
-      <div style="background:white;border-radius:12px;padding:16px;margin-bottom:16px;display:inline-block;">
-        <canvas id="qr-canvas" style="display:block;"></canvas>
-      </div>
-      
-      <div style="font-size:13px;font-weight:500;color:#00d4aa;margin-bottom:6px;">📸 Escanea con el computador</div>
-      <div style="font-size:11px;color:#8a9db0;margin-bottom:20px;line-height:1.6;">Abre el dashboard → toca<br><strong style="color:#e3b341;">"📤 Escanear QR del celular"</strong></div>
-      
-      <button onclick="document.getElementById('export-panel').remove()" style="width:100%;padding:14px;background:rgba(255,255,255,0.06);color:#8a9db0;border:1px solid rgba(255,255,255,0.1);border-radius:12px;font-size:14px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;">
-        Cerrar
-      </button>
-    </div>`;
+  // Save full inspection to localStorage
+  try {
+    const all = JSON.parse(localStorage.getItem('si_inspections') || '[]');
+    const exists = all.find(i => i.id === data.id);
+    if (!exists) { all.unshift(data); localStorage.setItem('si_inspections', JSON.stringify(all.slice(0,50))); }
+  } catch(e) {}
 
-  document.body.appendChild(panel);
-  
-  // Generate QR after panel is in DOM
-  setTimeout(() => generateQR(data), 100);
-}
-
-function generateQR(data) {
-  const canvas = document.getElementById('qr-canvas');
-  if (!canvas) return;
-  
-  // Build compact data for QR (without images to keep QR small)
-  const qrPayload = JSON.stringify({
+  // Build a short URL-safe token with key info
+  const token = btoa(unescape(encodeURIComponent(JSON.stringify({
     id: data.id,
     empresa: data.empresa,
     inspector: data.inspector,
@@ -649,61 +625,79 @@ function generateQR(data) {
     total: data.photos.length,
     peligros: data.photos.reduce((a,p)=>a+p.hazards.length,0),
     photos: data.photos.map(p=>({
-      name: p.name,
-      area: p.area,
-      severity: p.severity,
-      summary: p.summary,
-      hazards: p.hazards,
-      recs: p.recs,
-      notes: p.notes,
-      dataUrl: p.dataUrl
+      name:p.name, area:p.area, severity:p.severity,
+      summary:p.summary, hazards:p.hazards, recs:p.recs,
+      notes:p.notes, dataUrl:p.dataUrl
     }))
-  });
+  }))));
 
-  // Draw QR directly on canvas using qrcode-generator
-  try {
-    const qr = qrcode(0, 'M');
-    qr.addData(qrPayload);
-    qr.make();
-    
-    const moduleCount = qr.getModuleCount();
-    const size = 240;
-    const cellSize = Math.floor(size / moduleCount);
-    canvas.width = cellSize * moduleCount;
-    canvas.height = cellSize * moduleCount;
-    const ctx = canvas.getContext('2d');
-    ctx.fillStyle = '#ffffff';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    ctx.fillStyle = '#000000';
-    for (let row = 0; row < moduleCount; row++) {
-      for (let col = 0; col < moduleCount; col++) {
-        if (qr.isDark(row, col)) {
-          ctx.fillRect(col * cellSize, row * cellSize, cellSize, cellSize);
-        }
-      }
+  // Store token for dashboard to pick up
+  localStorage.setItem('si_transfer_token', token);
+  localStorage.setItem('si_transfer_time', Date.now());
+
+  const hazardCount = data.photos.reduce((a,p)=>a+p.hazards.length,0);
+  const altaCount = data.photos.filter(p=>p.severity==='alta').length;
+
+  const panel = document.createElement('div');
+  panel.id = 'export-panel';
+  panel.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.92);z-index:999;display:flex;align-items:center;justify-content:center;padding:20px;';
+  panel.innerHTML = `
+    <div style="background:#161f2b;border-radius:20px;padding:24px 20px;width:100%;max-width:380px;text-align:center;border:1px solid rgba(255,255,255,0.1);">
+      <div style="font-size:40px;margin-bottom:12px;">✅</div>
+      <div style="font-size:17px;font-weight:700;color:#e8edf2;margin-bottom:6px;">Inspección guardada</div>
+      <div style="font-size:12px;color:#8a9db0;margin-bottom:24px;">
+        ${data.photos.length} foto(s) · ${hazardCount} peligros · ${altaCount} riesgo alto
+      </div>
+
+      <div style="background:#1c2a38;border-radius:12px;padding:16px;margin-bottom:16px;text-align:left;">
+        <div style="font-size:11px;font-family:monospace;color:#00d4aa;margin-bottom:8px;text-transform:uppercase;letter-spacing:0.05em;">Código de inspección</div>
+        <div id="ins-code" style="font-size:22px;font-weight:700;color:#e3b341;letter-spacing:4px;text-align:center;padding:10px 0;">${data.id.replace('INS-','').slice(-6)}</div>
+        <div style="font-size:11px;color:#4a5f72;text-align:center;">Escribe este código en el dashboard</div>
+      </div>
+
+      <div style="background:#1c2a38;border-radius:12px;padding:14px;margin-bottom:16px;">
+        <div style="font-size:11px;color:#8a9db0;margin-bottom:8px;">O toca para copiar todos los datos:</div>
+        <button onclick="copyToken()" style="width:100%;padding:12px;background:#e3b341;color:#0d1117;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;font-family:DM Sans,sans-serif;">
+          📋 Copiar datos al portapapeles
+        </button>
+      </div>
+
+      <div style="font-size:11px;color:#4a5f72;margin-bottom:16px;line-height:1.6;">
+        En el dashboard toca <strong style="color:#e3b341;">"📤 Importar"</strong><br>y pega los datos copiados
+      </div>
+
+      <button onclick="document.getElementById('export-panel').remove()" 
+        style="width:100%;padding:13px;background:rgba(255,255,255,0.06);color:#8a9db0;border:1px solid rgba(255,255,255,0.1);border-radius:12px;font-size:14px;cursor:pointer;font-family:DM Sans,sans-serif;">
+        Cerrar
+      </button>
+    </div>`;
+
+  window._transferToken = token;
+  document.body.appendChild(panel);
+}
+
+function copyToken() {
+  const token = window._transferToken || localStorage.getItem('si_transfer_token') || '';
+  const payload = '{"type":"SAFEINSPECT_TOKEN","token":"' + token + '"}';
+  
+  const copy = (text) => {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      return navigator.clipboard.writeText(text);
     }
-    canvas.style.display = 'block';
-    canvas.style.borderRadius = '8px';
-  } catch(e) {
-    console.error('QR error:', e);
-    showCopyFallback();
-  }
+    const ta = document.createElement('textarea');
+    ta.value = text; ta.style.cssText = 'position:fixed;opacity:0;top:0;left:0;';
+    document.body.appendChild(ta); ta.focus(); ta.select();
+    document.execCommand('copy'); document.body.removeChild(ta);
+    return Promise.resolve();
+  };
+
+  copy(payload).then(() => {
+    const btn = document.querySelector('#export-panel button');
+    if (btn) { btn.textContent = '✅ Copiado — ve al dashboard'; btn.style.background='#3fb950'; }
+    showToast('✅ Datos copiados');
+  }).catch(() => showToast('❌ No se pudo copiar automáticamente'));
 }
 
-
-function showCopyFallback() {
-  const panel = document.getElementById('export-panel');
-  if (!panel) return;
-  const allInspections = JSON.parse(localStorage.getItem('si_inspections') || '[]');
-  const exportStr = JSON.stringify({ type: 'SAFEINSPECT_EXPORT', inspections: allInspections });
-  window._exportData = exportStr;
-  const btn = document.createElement('button');
-  btn.textContent = '📋 Copiar datos manualmente';
-  btn.style.cssText = 'width:100%;padding:14px;background:#e3b341;color:#0d1117;border:none;border-radius:12px;font-size:14px;font-weight:600;cursor:pointer;margin-bottom:10px;font-family:DM Sans,sans-serif;';
-  btn.onclick = copyAndClose;
-  const closeBtn = panel.querySelector('button:last-child');
-  if (closeBtn) closeBtn.parentElement.insertBefore(btn, closeBtn);
-}
 
 function copyAndClose() {
   const str = window._exportData || '{}';
