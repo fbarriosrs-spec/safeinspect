@@ -522,147 +522,102 @@ function importData() {
 </script>
 
 
-<!-- QR SCANNER MODAL -->
-<div class="modal-overlay hidden" id="qr-modal" style="position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:300;display:flex;align-items:center;justify-content:center;">
-  <div style="background:#161b22;border:1px solid rgba(255,255,255,0.12);border-radius:16px;padding:24px;width:500px;max-height:90vh;overflow-y:auto;">
-    <h2 style="font-size:16px;font-weight:600;margin-bottom:6px;color:#e6edf3;">📷 Escanear QR del celular</h2>
-    <p style="font-size:12px;color:#7d8590;margin-bottom:16px;line-height:1.6;">Apunta la cámara del computador al QR que muestra el celular después de enviar la inspección.</p>
+<!-- IMPORT MODAL -->
+<div class="modal-overlay hidden" id="qr-modal" style="position:fixed;inset:0;background:rgba(0,0,0,0.8);z-index:300;display:flex;align-items:center;justify-content:center;">
+  <div style="background:#161b22;border:1px solid rgba(255,255,255,0.12);border-radius:16px;padding:24px;width:480px;max-height:85vh;overflow-y:auto;">
+    <h2 style="font-size:16px;font-weight:600;margin-bottom:6px;color:#e6edf3;">📤 Importar inspección del celular</h2>
+    <p style="font-size:12px;color:#7d8590;margin-bottom:20px;line-height:1.6;">
+      En el celular toca <strong style="color:#e3b341;">"Enviar inspección al dashboard"</strong> y luego <strong style="color:#e3b341;">"Copiar datos al portapapeles"</strong>. Luego pega aquí abajo.
+    </p>
     
-    <div id="qr-video-wrap" style="background:#000;border-radius:12px;overflow:hidden;margin-bottom:16px;position:relative;aspect-ratio:4/3;">
-      <video id="qr-video" style="width:100%;height:100%;object-fit:cover;" autoplay muted playsinline></video>
-      <div style="position:absolute;inset:0;border:3px solid #00d4aa;border-radius:12px;pointer-events:none;opacity:0.6;"></div>
-      <canvas id="qr-canvas-scan" style="display:none;"></canvas>
-      <div id="qr-scan-status" style="position:absolute;bottom:12px;left:0;right:0;text-align:center;font-size:12px;color:#00d4aa;background:rgba(0,0,0,0.6);padding:6px;">🔍 Buscando QR...</div>
-    </div>
-
-    <div id="qr-result" style="display:none;background:#1c2128;border-radius:10px;padding:14px;margin-bottom:14px;border:1px solid rgba(0,212,170,0.3);">
-      <div style="font-size:13px;font-weight:500;color:#00d4aa;margin-bottom:8px;">✅ QR detectado</div>
-      <div id="qr-result-text" style="font-size:12px;color:#7d8590;"></div>
+    <div style="background:#21262d;border-radius:10px;padding:14px;margin-bottom:14px;">
+      <div style="font-size:11px;font-family:DM Mono,monospace;color:#7d8590;letter-spacing:0.06em;text-transform:uppercase;margin-bottom:8px;">Pega los datos del celular aquí</div>
+      <textarea id="import-text" 
+        style="width:100%;background:#0d1117;border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:10px;font-size:11px;font-family:monospace;color:#00d4aa;resize:vertical;min-height:80px;outline:none;" 
+        placeholder='Pega aquí el texto copiado del celular...'></textarea>
     </div>
 
     <div style="display:flex;gap:10px;">
-      <button id="qr-import-btn" onclick="importFromQR()" style="display:none;flex:1;padding:11px;background:#00d4aa;color:#0d1117;border:none;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;">✅ Cargar en dashboard</button>
-      <button onclick="closeQRScanner()" style="flex:1;padding:11px;background:#21262d;color:#e6edf3;border:1px solid rgba(255,255,255,0.12);border-radius:10px;font-size:13px;cursor:pointer;">Cerrar</button>
+      <button onclick="importData()" style="flex:1;padding:12px;background:#00d4aa;color:#0d1117;border:none;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;">✅ Importar al dashboard</button>
+      <button onclick="closeImport()" style="padding:12px 18px;background:#21262d;color:#e6edf3;border:1px solid rgba(255,255,255,0.12);border-radius:10px;font-size:13px;cursor:pointer;">Cancelar</button>
     </div>
+    <div id="import-result" style="margin-top:10px;font-size:12px;min-height:20px;"></div>
   </div>
 </div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jsQR/1.4.0/jsQR.min.js"></script>
 <script>
-let qrStream = null;
-let qrInterval = null;
-let qrDetected = null;
-
 function openQRScanner() {
   document.getElementById('qr-modal').classList.remove('hidden');
-  startCamera();
+  document.getElementById('import-text').value = '';
+  document.getElementById('import-result').innerHTML = '';
+  // Try to auto-paste from clipboard
+  if (navigator.clipboard && navigator.clipboard.readText) {
+    navigator.clipboard.readText().then(text => {
+      if (text && (text.includes('SAFEINSPECT') || text.includes('"empresa"'))) {
+        document.getElementById('import-text').value = text;
+      }
+    }).catch(()=>{});
+  }
 }
 
-function closeQRScanner() {
-  stopCamera();
+function closeImport() {
   document.getElementById('qr-modal').classList.add('hidden');
-  document.getElementById('qr-result').style.display = 'none';
-  document.getElementById('qr-import-btn').style.display = 'none';
-  qrDetected = null;
 }
 
-async function startCamera() {
+function importData() {
+  const raw = document.getElementById('import-text').value.trim();
+  const result = document.getElementById('import-result');
+  if (!raw) { result.innerHTML = '<span style="color:#f85149">⚠ Pega el texto del celular primero</span>'; return; }
+  
   try {
-    qrStream = await navigator.mediaDevices.getUserMedia({ 
-      video: { facingMode: 'environment', width: { ideal: 640 }, height: { ideal: 480 } } 
-    });
-    const video = document.getElementById('qr-video');
-    video.srcObject = qrStream;
-    video.play();
-    qrInterval = setInterval(scanQR, 300);
-  } catch(e) {
-    document.getElementById('qr-scan-status').textContent = '❌ No se pudo acceder a la cámara. Usa el modo manual.';
-    showManualInput();
-  }
-}
+    const parsed = JSON.parse(raw);
+    let inspection = null;
 
-function stopCamera() {
-  if (qrStream) { qrStream.getTracks().forEach(t => t.stop()); qrStream = null; }
-  if (qrInterval) { clearInterval(qrInterval); qrInterval = null; }
-}
+    // Handle token format
+    if (parsed.type === 'SAFEINSPECT_TOKEN' && parsed.token) {
+      const decoded = JSON.parse(decodeURIComponent(escape(atob(parsed.token))));
+      inspection = decoded;
+    }
+    // Handle direct inspection
+    else if (parsed.id && parsed.photos) {
+      inspection = parsed;
+    }
+    // Handle array
+    else if (Array.isArray(parsed)) {
+      inspection = parsed[0];
+    }
+    // Handle export wrapper
+    else if (parsed.inspections) {
+      inspection = parsed.inspections[0];
+    }
 
-function scanQR() {
-  const video = document.getElementById('qr-video');
-  const canvas = document.getElementById('qr-canvas-scan');
-  if (!video.videoWidth) return;
-  canvas.width = video.videoWidth;
-  canvas.height = video.videoHeight;
-  const ctx = canvas.getContext('2d');
-  ctx.drawImage(video, 0, 0);
-  const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-  const code = jsQR(imageData.data, imageData.width, imageData.height);
-  if (code) {
-    stopCamera();
-    processQRData(code.data);
-  }
-}
+    if (!inspection) throw new Error('Formato no reconocido');
 
-function processQRData(rawData) {
-  try {
-    const data = JSON.parse(rawData);
-    qrDetected = data;
-    const resultEl = document.getElementById('qr-result');
-    const textEl = document.getElementById('qr-result-text');
-    resultEl.style.display = 'block';
-    document.getElementById('qr-import-btn').style.display = 'block';
-    document.getElementById('qr-scan-status').textContent = '✅ QR leído correctamente';
-    textEl.innerHTML = `
-      <strong style="color:#e6edf3;">${data.empresa || 'Sin nombre'}</strong><br>
-      Inspector: ${data.inspector || '-'} · ${data.total || 0} foto(s) · ${data.peligros || 0} peligros<br>
-      <span style="color:#3fb950">${new Date(data.fecha).toLocaleString('es-CO')}</span>`;
-  } catch(e) {
-    document.getElementById('qr-scan-status').textContent = '❌ QR no válido. Intenta de nuevo.';
+    const existing = JSON.parse(localStorage.getItem('si_inspections') || '[]');
+    const ids = new Set(existing.map(i => i.id));
+    if (!ids.has(inspection.id)) {
+      existing.unshift(inspection);
+      localStorage.setItem('si_inspections', JSON.stringify(existing));
+      inspections = existing;
+    } else {
+      // Update existing
+      const idx = existing.findIndex(i => i.id === inspection.id);
+      existing[idx] = inspection;
+      localStorage.setItem('si_inspections', JSON.stringify(existing));
+      inspections = existing;
+    }
+
+    renderSidebar();
+    updateGlobalMetrics();
+    result.innerHTML = '<span style="color:#3fb950">✅ Inspección importada: ' + (inspection.empresa||'Sin nombre') + ' — ' + (inspection.photos||[]).length + ' foto(s)</span>';
     setTimeout(() => {
-      document.getElementById('qr-scan-status').textContent = '🔍 Buscando QR...';
-      startCamera();
-    }, 2000);
+      closeImport();
+      selectInspection(inspection.id);
+    }, 1500);
+
+  } catch(e) {
+    result.innerHTML = '<span style="color:#f85149">❌ Error: ' + e.message + '</span>';
   }
-}
-
-function importFromQR() {
-  if (!qrDetected) return;
-  // Build inspection from QR data
-  const ins = {
-    id: qrDetected.id || 'INS-' + Date.now(),
-    empresa: qrDetected.empresa || 'Sin nombre',
-    inspector: qrDetected.inspector || '',
-    area: qrDetected.area || '',
-    fecha: qrDetected.fecha || new Date().toISOString(),
-    photos: qrDetected.photos || []
-  };
-  const existing = JSON.parse(localStorage.getItem('si_inspections') || '[]');
-  const ids = new Set(existing.map(i => i.id));
-  if (!ids.has(ins.id)) {
-    existing.unshift(ins);
-    localStorage.setItem('si_inspections', JSON.stringify(existing));
-    inspections = existing;
-  }
-  renderSidebar();
-  updateGlobalMetrics();
-  closeQRScanner();
-  // Auto select the imported inspection
-  const idx = inspections.findIndex(i => i.id === ins.id);
-  if (idx >= 0) selectInspection(ins.id);
-}
-
-function showManualInput() {
-  const wrap = document.getElementById('qr-video-wrap');
-  wrap.innerHTML = `
-    <div style="padding:20px;text-align:center;">
-      <div style="font-size:12px;color:#7d8590;margin-bottom:10px;">O pega el texto del celular manualmente:</div>
-      <textarea id="manual-qr-input" style="width:100%;background:#0d1117;border:1px solid rgba(255,255,255,0.12);border-radius:8px;padding:10px;font-size:11px;color:#00d4aa;min-height:80px;outline:none;font-family:monospace;" placeholder='Pega aquí el JSON del celular...'></textarea>
-      <button onclick="processManualInput()" style="margin-top:10px;width:100%;padding:10px;background:#00d4aa;color:#0d1117;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;">Procesar</button>
-    </div>`;
-}
-
-function processManualInput() {
-  const val = document.getElementById('manual-qr-input')?.value?.trim();
-  if (val) processQRData(val);
 }
 </script>
 
