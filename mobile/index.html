@@ -198,7 +198,7 @@
   </div>
 
   <!-- Enviar -->
-  <div class="submit-section" id="submit-section" style="display:none">
+  <div class="submit-section" id="submit-section">
     <button class="submit-btn" id="submit-btn" onclick="submitInspection()">
       ✅ Enviar inspección al dashboard
     </button>
@@ -575,8 +575,10 @@ function updateCounter() {
 }
 
 async function submitInspection() {
-  const pending = photos.filter(p=>p.status==='analyzing');
-  if (pending.length) { showToast('Esperando análisis de '+pending.length+' foto(s)...'); return; }
+  if (!photos.length) { showToast('⚠ No hay fotos cargadas'); return; }
+  
+  const pending = photos.filter(p => p.status === 'analyzing');
+  if (pending.length) { showToast('⏳ Esperando análisis de ' + pending.length + ' foto(s)...'); return; }
 
   const data = {
     id: 'INS-' + Date.now(),
@@ -591,29 +593,198 @@ async function submitInspection() {
     }))
   };
 
-  const workerUrl = document.getElementById('worker-url').value;
-  if (workerUrl) {
-    try {
-      await fetch(workerUrl + '/inspection', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data)
-      });
-      showToast('✅ Inspección enviada al dashboard');
-    } catch(e) {
-      saveLocally(data);
-    }
+  // Save to localStorage
+  try {
+    const inspections = JSON.parse(localStorage.getItem('si_inspections') || '[]');
+    inspections.unshift(data);
+    localStorage.setItem('si_inspections', JSON.stringify(inspections.slice(0, 50)));
+  } catch(e) {}
+
+  // Show export panel
+  showExportPanel(data);
+}
+
+function showExportPanel(data) {
+  const old = document.getElementById('export-panel');
+  if (old) old.remove();
+
+  const panel = document.createElement('div');
+  panel.id = 'export-panel';
+  panel.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.92);z-index:999;display:flex;align-items:center;justify-content:center;flex-direction:column;padding:20px;';
+  panel.innerHTML = `
+    <div style="background:#161f2b;border-radius:20px;padding:24px 20px;width:100%;max-width:380px;text-align:center;border:1px solid rgba(255,255,255,0.1);">
+      <div style="font-size:16px;font-weight:600;color:#e8edf2;margin-bottom:4px;">✅ Inspección lista</div>
+      <div style="font-size:12px;color:#8a9db0;margin-bottom:20px;">${photos.length} foto(s) · ${photos.reduce((a,p)=>a+p.hazards.length,0)} peligros identificados</div>
+      
+      <div style="background:white;border-radius:12px;padding:16px;margin-bottom:16px;display:inline-block;">
+        <canvas id="qr-canvas" style="display:block;"></canvas>
+      </div>
+      
+      <div style="font-size:13px;font-weight:500;color:#00d4aa;margin-bottom:6px;">📸 Escanea con el computador</div>
+      <div style="font-size:11px;color:#8a9db0;margin-bottom:20px;line-height:1.6;">Abre el dashboard → toca<br><strong style="color:#e3b341;">"📤 Escanear QR del celular"</strong></div>
+      
+      <button onclick="document.getElementById('export-panel').remove()" style="width:100%;padding:14px;background:rgba(255,255,255,0.06);color:#8a9db0;border:1px solid rgba(255,255,255,0.1);border-radius:12px;font-size:14px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;">
+        Cerrar
+      </button>
+    </div>`;
+
+  document.body.appendChild(panel);
+  
+  // Generate QR after panel is in DOM
+  setTimeout(() => generateQR(data), 100);
+}
+
+function generateQR(data) {
+  // Use QR code via API - encode inspection summary as URL
+  const summary = {
+    id: data.id,
+    empresa: data.empresa,
+    inspector: data.inspector,
+    area: data.area,
+    fecha: data.fecha,
+    total_fotos: data.photos.length,
+    total_peligros: data.photos.reduce((a,p)=>a+p.hazards.length,0),
+    altas: data.photos.filter(p=>p.severity==='alta').length,
+    // Include compressed photo data
+    photos: data.photos.map(p=>({
+      name: p.name,
+      area: p.area,
+      severity: p.severity,
+      summary: p.summary,
+      hazards: p.hazards,
+      recs: p.recs,
+      notes: p.notes,
+      dataUrl: p.dataUrl
+    }))
+  };
+  
+  const jsonStr = JSON.stringify(summary);
+  const encoded = btoa(unescape(encodeURIComponent(jsonStr)));
+  
+  // Store for dashboard to read
+  localStorage.setItem('si_qr_latest', jsonStr);
+  
+  // Generate QR using qrcode library
+  const canvas = document.getElementById('qr-canvas');
+  if (!canvas) return;
+  
+  // Simple QR via API image
+  const img = document.createElement('img');
+  // Use a smaller payload - just the inspection ID and key data
+  const qrData = JSON.stringify({
+    id: data.id,
+    empresa: data.empresa,
+    inspector: data.inspector,
+    fecha: data.fecha,
+    total: data.photos.length,
+    peligros: data.photos.reduce((a,p)=>a+p.hazards.length,0)
+  });
+  
+  const qrUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=' + encodeURIComponent(qrData);
+  img.src = qrUrl;
+  img.style.cssText = 'width:200px;height:200px;display:block;border-radius:8px;';
+  img.onerror = () => {
+    // Fallback: show copy button if QR fails
+    canvas.parentElement.innerHTML = '<div style="padding:20px;font-size:12px;color:#7d8590;">Usando modo texto...</div>';
+    showCopyFallback();
+  };
+  canvas.parentElement.replaceChild(img, canvas);
+}
+
+function showCopyFallback() {
+  const panel = document.getElementById('export-panel');
+  if (!panel) return;
+  const allInspections = JSON.parse(localStorage.getItem('si_inspections') || '[]');
+  const exportStr = JSON.stringify({ type: 'SAFEINSPECT_EXPORT', inspections: allInspections });
+  window._exportData = exportStr;
+  const btn = document.createElement('button');
+  btn.textContent = '📋 Copiar datos manualmente';
+  btn.style.cssText = 'width:100%;padding:14px;background:#e3b341;color:#0d1117;border:none;border-radius:12px;font-size:14px;font-weight:600;cursor:pointer;margin-bottom:10px;font-family:DM Sans,sans-serif;';
+  btn.onclick = copyAndClose;
+  const closeBtn = panel.querySelector('button:last-child');
+  if (closeBtn) closeBtn.parentElement.insertBefore(btn, closeBtn);
+}
+
+function copyAndClose() {
+  const str = window._exportData || '{}';
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(str).then(() => {
+      showToast('✅ Datos copiados — pégalos en el dashboard');
+      setTimeout(() => {
+        const p = document.getElementById('export-panel');
+        if (p) p.remove();
+      }, 1500);
+    }).catch(() => fallbackCopy(str));
   } else {
-    saveLocally(data);
-    showToast('✅ Guardado localmente — abre el dashboard');
+    fallbackCopy(str);
   }
 }
+
+function fallbackCopy(str) {
+  const ta = document.createElement('textarea');
+  ta.value = str;
+  ta.style.cssText = 'position:fixed;top:0;left:0;opacity:0;';
+  document.body.appendChild(ta);
+  ta.focus();
+  ta.select();
+  try {
+    document.execCommand('copy');
+    showToast('✅ Datos copiados — pégalos en el dashboard');
+    setTimeout(() => {
+      const p = document.getElementById('export-panel');
+      if (p) p.remove();
+    }, 1500);
+  } catch(e) {
+    showToast('❌ No se pudo copiar — intenta manualmente');
+  }
+  document.body.removeChild(ta);
+}
+
 
 function saveLocally(data) {
   const inspections = JSON.parse(localStorage.getItem('si_inspections') || '[]');
   inspections.unshift(data);
   localStorage.setItem('si_inspections', JSON.stringify(inspections.slice(0, 50)));
-  showToast('✅ Inspección guardada — abre el dashboard');
+  showToast('✅ Guardado — toca "Copiar datos" para enviar al dashboard');
+  showExportButton();
+}
+
+function showExportButton() {
+  // Remove existing export btn if any
+  const old = document.getElementById('export-data-btn');
+  if (old) old.remove();
+  
+  const btn = document.createElement('div');
+  btn.id = 'export-data-btn';
+  btn.style.cssText = 'position:fixed;bottom:80px;left:16px;right:16px;z-index:100;';
+  
+  const inspections = JSON.parse(localStorage.getItem('si_inspections') || '[]');
+  const exportData = JSON.stringify({ type: 'SAFEINSPECT_EXPORT', inspections });
+  
+  btn.innerHTML = `
+    <button onclick="copyExportData()" style="width:100%;padding:16px;background:#e3b341;color:#0d1117;border:none;border-radius:14px;font-size:14px;font-weight:700;font-family:DM Sans,sans-serif;cursor:pointer;box-shadow:0 4px 20px rgba(0,0,0,0.4);">
+      📋 Copiar datos para el dashboard
+    </button>`;
+  document.body.appendChild(btn);
+}
+
+function copyExportData() {
+  const inspections = JSON.parse(localStorage.getItem('si_inspections') || '[]');
+  const exportData = JSON.stringify({ type: 'SAFEINSPECT_EXPORT', inspections });
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(exportData).then(() => {
+      showToast('✅ Datos copiados — pégalos en el dashboard');
+    });
+  } else {
+    // Fallback for older browsers
+    const ta = document.createElement('textarea');
+    ta.value = exportData;
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+    showToast('✅ Datos copiados — pégalos en el dashboard');
+  }
 }
 
 function showToast(msg) {
