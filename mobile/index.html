@@ -2,809 +2,618 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#0f1923">
 <title>SafeInspect — Campo</title>
-<link rel="manifest" href="manifest.json">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
-  :root {
-    --bg: #0f1923;
-    --bg2: #161f2b;
-    --bg3: #1c2a38;
-    --border: rgba(255,255,255,0.08);
-    --border2: rgba(255,255,255,0.14);
-    --text: #e8edf2;
-    --text2: #8a9db0;
-    --text3: #4a5f72;
-    --accent: #00d4aa;
-    --accent2: #00a882;
-    --danger: #ff4d6d;
-    --warn: #ffb347;
-    --safe: #00d4aa;
-    --blue: #4d9fff;
-  }
-  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-  html, body { height: 100%; background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; overflow-x: hidden; }
-
-  /* HEADER */
-  .header { background: var(--bg2); border-bottom: 1px solid var(--border); padding: 14px 20px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
-  .logo { display: flex; align-items: center; gap: 10px; }
-  .logo-icon { width: 34px; height: 34px; background: var(--accent); border-radius: 10px; display: flex; align-items: center; justify-content: center; }
-  .logo-icon svg { width: 18px; height: 18px; fill: var(--bg); }
-  .logo-text { font-size: 16px; font-weight: 600; letter-spacing: -0.3px; }
-  .logo-sub { font-size: 10px; color: var(--text2); font-family: 'DM Mono', monospace; letter-spacing: 0.05em; }
-  .header-right { display: flex; align-items: center; gap: 10px; }
-  .sync-badge { font-size: 10px; font-family: 'DM Mono', monospace; padding: 4px 8px; border-radius: 6px; background: rgba(0,212,170,0.12); color: var(--accent); border: 1px solid rgba(0,212,170,0.25); }
-  .settings-btn { width: 34px; height: 34px; border-radius: 10px; background: var(--bg3); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--text2); font-size: 16px; }
-
-  /* MAIN */
-  .main { padding: 20px; display: flex; flex-direction: column; gap: 16px; max-width: 520px; margin: 0 auto; padding-bottom: 40px; }
-
-  /* INFO EMPRESA */
-  .empresa-card { background: var(--bg2); border: 1px solid var(--border); border-radius: 16px; padding: 16px; }
-  .field-label { font-size: 10px; font-family: 'DM Mono', monospace; color: var(--text2); letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 6px; }
-  .field-input { width: 100%; background: var(--bg3); border: 1px solid var(--border); border-radius: 10px; padding: 10px 14px; font-size: 14px; font-family: 'DM Sans', sans-serif; color: var(--text); outline: none; transition: border-color 0.2s; }
-  .field-input:focus { border-color: var(--accent); }
-  .field-input::placeholder { color: var(--text3); }
-  .fields-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-  .field-group { margin-bottom: 12px; }
-  .field-group:last-child { margin-bottom: 0; }
-
-  /* CAMARA */
-  .camera-zone { background: var(--bg2); border: 1px solid var(--border); border-radius: 20px; overflow: hidden; }
-  .camera-header { padding: 14px 18px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
-  .camera-title { font-size: 13px; font-weight: 500; }
-  .counter-badge { font-size: 11px; font-family: 'DM Mono', monospace; color: var(--accent); background: rgba(0,212,170,0.1); padding: 3px 8px; border-radius: 6px; }
-  .capture-area { padding: 20px; display: flex; flex-direction: column; gap: 12px; }
-  .capture-btn { width: 100%; padding: 18px; background: var(--accent); color: var(--bg); border: none; border-radius: 14px; font-size: 15px; font-weight: 600; font-family: 'DM Sans', sans-serif; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; transition: all 0.15s; letter-spacing: -0.2px; }
-  .capture-btn:active { transform: scale(0.97); background: var(--accent2); }
-  .capture-btn svg { width: 22px; height: 22px; fill: var(--bg); flex-shrink: 0; }
-  .gallery-btn { width: 100%; padding: 14px; background: var(--bg3); color: var(--text); border: 1px solid var(--border2); border-radius: 14px; font-size: 14px; font-weight: 500; font-family: 'DM Sans', sans-serif; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; transition: all 0.15s; }
-  .gallery-btn:active { transform: scale(0.97); }
-  input[type=file] { display: none; }
-
-  /* FOTOS LISTA */
-  .photos-list { display: flex; flex-direction: column; gap: 10px; }
-  .photo-card { background: var(--bg2); border: 1px solid var(--border); border-radius: 16px; overflow: hidden; animation: slideIn 0.3s ease; }
-  @keyframes slideIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
-  .photo-card-inner { display: flex; gap: 0; }
-  .photo-thumb-wrap { width: 90px; min-width: 90px; position: relative; }
-  .photo-thumb { width: 90px; height: 90px; object-fit: cover; display: block; }
-  .photo-info { flex: 1; padding: 10px 12px; display: flex; flex-direction: column; gap: 4px; }
-  .photo-name { font-size: 11px; font-family: 'DM Mono', monospace; color: var(--text2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .photo-area { font-size: 13px; font-weight: 500; color: var(--text); }
-  .photo-status { display: flex; align-items: center; gap: 6px; margin-top: 4px; }
-  .status-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
-  .dot-analyzing { background: var(--blue); animation: pulse 1s ease-in-out infinite; }
-  .dot-done { background: var(--accent); }
-  .dot-pending { background: var(--text3); }
-  .dot-error { background: var(--danger); }
-  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
-  .status-text { font-size: 11px; color: var(--text2); }
-  .sev-pill { font-size: 10px; font-weight: 500; padding: 2px 7px; border-radius: 5px; font-family: 'DM Mono', monospace; }
-  .sev-alta { background: rgba(255,77,109,0.15); color: #ff4d6d; border: 1px solid rgba(255,77,109,0.25); }
-  .sev-media { background: rgba(255,179,71,0.15); color: #ffb347; border: 1px solid rgba(255,179,71,0.25); }
-  .sev-baja { background: rgba(0,212,170,0.12); color: var(--accent); border: 1px solid rgba(0,212,170,0.2); }
-  .photo-expand { padding: 10px 12px; border-top: 1px solid var(--border); }
-  .hazard-item { display: flex; gap: 8px; padding: 6px 0; border-bottom: 1px solid var(--border); }
-  .hazard-item:last-child { border-bottom: none; }
-  .hazard-text { font-size: 12px; color: var(--text2); line-height: 1.5; }
-  .hazard-title { font-size: 12px; font-weight: 500; color: var(--text); }
-  .expand-btn { background: none; border: none; color: var(--text2); font-size: 11px; font-family: 'DM Mono', monospace; cursor: pointer; padding: 0; display: flex; align-items: center; gap: 4px; margin-top: 4px; }
-  .notes-input { width: 100%; background: var(--bg3); border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px; font-size: 12px; font-family: 'DM Sans', sans-serif; color: var(--text); outline: none; resize: none; margin-top: 8px; }
-  .notes-input:focus { border-color: var(--accent); }
-  .delete-btn { position: absolute; top: 6px; right: 6px; width: 22px; height: 22px; border-radius: 6px; background: rgba(0,0,0,0.6); border: none; color: #ff4d6d; font-size: 13px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
-
-  /* SUBMIT */
-  .submit-section { background: var(--bg2); border: 1px solid var(--border); border-radius: 16px; padding: 16px; }
-  .submit-btn { width: 100%; padding: 16px; background: var(--accent); color: var(--bg); border: none; border-radius: 12px; font-size: 15px; font-weight: 600; font-family: 'DM Sans', sans-serif; cursor: pointer; transition: all 0.15s; display: flex; align-items: center; justify-content: center; gap: 8px; }
-  .submit-btn:active { transform: scale(0.97); }
-  .submit-btn:disabled { background: var(--bg3); color: var(--text3); cursor: not-allowed; transform: none; }
-  .submit-hint { font-size: 11px; color: var(--text3); text-align: center; margin-top: 8px; font-family: 'DM Mono', monospace; }
-
-  /* SETTINGS MODAL */
-  .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 200; display: flex; align-items: flex-end; }
-  .modal { background: var(--bg2); border-radius: 24px 24px 0 0; padding: 24px 20px; width: 100%; border-top: 1px solid var(--border2); max-height: 85vh; overflow-y: auto; }
-  .modal-handle { width: 40px; height: 4px; background: var(--border2); border-radius: 2px; margin: 0 auto 20px; }
-  .modal-title { font-size: 16px; font-weight: 600; margin-bottom: 20px; }
-  .ai-option { background: var(--bg3); border: 1px solid var(--border); border-radius: 12px; padding: 14px; margin-bottom: 10px; cursor: pointer; transition: all 0.15s; }
-  .ai-option.selected { border-color: var(--accent); background: rgba(0,212,170,0.06); }
-  .ai-option-head { display: flex; align-items: center; justify-content: space-between; }
-  .ai-name { font-size: 14px; font-weight: 500; }
-  .ai-tag { font-size: 10px; font-family: 'DM Mono', monospace; padding: 2px 7px; border-radius: 5px; }
-  .tag-free { background: rgba(0,212,170,0.12); color: var(--accent); }
-  .tag-paid { background: rgba(255,179,71,0.12); color: var(--warn); }
-  .ai-desc { font-size: 11px; color: var(--text2); margin-top: 4px; }
-  .api-key-field { margin-top: 10px; display: none; }
-  .ai-option.selected .api-key-field { display: block; }
-  .modal-close { width: 100%; padding: 14px; background: var(--bg3); color: var(--text); border: 1px solid var(--border); border-radius: 12px; font-size: 14px; font-weight: 500; font-family: 'DM Sans', sans-serif; cursor: pointer; margin-top: 16px; }
-
-  /* TOAST */
-  .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); background: var(--bg3); border: 1px solid var(--border2); border-radius: 12px; padding: 10px 18px; font-size: 13px; color: var(--text); z-index: 300; white-space: nowrap; animation: toastIn 0.2s ease; }
-  @keyframes toastIn { from{opacity:0;transform:translate(-50%,10px)} to{opacity:1;transform:translate(-50%,0)} }
-
-  .empty-state { text-align: center; padding: 32px 20px; color: var(--text3); }
-  .empty-icon { font-size: 40px; margin-bottom: 10px; opacity: 0.4; }
-  .empty-text { font-size: 13px; line-height: 1.6; }
+:root{--bg:#0f1923;--bg2:#161f2b;--bg3:#1c2a38;--border:rgba(255,255,255,0.08);--text:#e8edf2;--text2:#8a9db0;--text3:#4a5f72;--accent:#00d4aa;--danger:#ff4d6d;--warn:#ffb347;}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+html,body{min-height:100%;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;}
+.header{background:var(--bg2);border-bottom:1px solid var(--border);padding:12px 16px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50;}
+.logo{display:flex;align-items:center;gap:10px;}
+.logo-icon{width:32px;height:32px;background:var(--accent);border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:16px;}
+.logo-text{font-size:15px;font-weight:600;}
+.logo-sub{font-size:10px;color:var(--text2);}
+.ai-badge{font-size:10px;padding:4px 9px;border-radius:6px;background:rgba(0,212,170,0.12);color:var(--accent);border:1px solid rgba(0,212,170,0.25);}
+.gear-btn{width:34px;height:34px;border-radius:9px;background:var(--bg3);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:16px;color:var(--text2);}
+.main{padding:16px;display:flex;flex-direction:column;gap:14px;max-width:520px;margin:0 auto;padding-bottom:60px;}
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:16px;}
+.label{font-size:10px;color:var(--text2);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:5px;}
+.inp{width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:9px;padding:10px 13px;font-size:14px;color:var(--text);outline:none;}
+.inp:focus{border-color:var(--accent);}
+.inp::placeholder{color:var(--text3);}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.fg{margin-bottom:11px;}
+.fg:last-child{margin-bottom:0;}
+.cam-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+.cam-title{font-size:14px;font-weight:500;}
+.count-badge{font-size:10px;padding:3px 8px;border-radius:5px;background:rgba(0,212,170,0.1);color:var(--accent);}
+.btn-cam{width:100%;padding:17px;background:var(--accent);color:#0f1923;border:none;border-radius:13px;font-size:15px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:9px;margin-bottom:10px;}
+.btn-cam:active{transform:scale(0.97);}
+.btn-gal{width:100%;padding:13px;background:var(--bg3);color:var(--text);border:1px solid var(--border);border-radius:13px;font-size:14px;font-weight:500;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:9px;}
+input[type=file]{display:none;}
+.photo-list{display:flex;flex-direction:column;gap:10px;}
+.photo-card{background:var(--bg2);border:1px solid var(--border);border-radius:13px;overflow:hidden;}
+.photo-row{display:flex;}
+.photo-thumb-wrap{position:relative;width:88px;min-width:88px;}
+.photo-thumb{width:88px;height:88px;object-fit:cover;display:block;}
+.del-btn{position:absolute;top:5px;right:5px;width:22px;height:22px;border-radius:6px;background:rgba(0,0,0,0.7);border:none;color:#ff4d6d;font-size:12px;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+.photo-info{flex:1;padding:10px 12px;display:flex;flex-direction:column;gap:3px;}
+.photo-fname{font-size:10px;color:var(--text2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.photo-area-txt{font-size:13px;font-weight:500;}
+.status-row{display:flex;align-items:center;gap:6px;margin-top:3px;}
+.dot{width:7px;height:7px;border-radius:50%;}
+.dot-ok{background:var(--accent);}
+.dot-wait{background:#4d9fff;animation:pulse 1s infinite;}
+.dot-err{background:var(--danger);}
+.dot-pend{background:var(--text3);}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.3}}
+.status-txt{font-size:11px;color:var(--text2);}
+.sev{font-size:10px;font-weight:600;padding:2px 6px;border-radius:4px;}
+.sev-alta{background:rgba(255,77,109,0.15);color:#ff4d6d;}
+.sev-media{background:rgba(255,179,71,0.15);color:#ffb347;}
+.sev-baja{background:rgba(0,212,170,0.12);color:var(--accent);}
+.err-txt{font-size:10px;color:#ff4d6d;margin-top:3px;}
+.expand-btn{font-size:10px;color:var(--text2);background:none;border:none;cursor:pointer;padding:0;margin-top:4px;display:flex;align-items:center;gap:3px;}
+.photo-detail{padding:10px 12px;border-top:1px solid var(--border);}
+.hazard-item{padding:7px 0;border-bottom:1px solid var(--border);display:flex;gap:8px;}
+.hazard-item:last-of-type{border-bottom:none;}
+.haz-title{font-size:12px;font-weight:500;color:var(--text);}
+.haz-desc{font-size:11px;color:var(--text2);line-height:1.5;margin-top:2px;}
+.note-inp{width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:8px 10px;font-size:12px;color:var(--text);outline:none;resize:none;margin-top:8px;font-family:inherit;}
+.note-inp:focus{border-color:var(--accent);}
+.btn-send{width:100%;padding:16px;background:#185FA5;color:white;border:none;border-radius:13px;font-size:15px;font-weight:700;cursor:pointer;}
+.btn-send:active{transform:scale(0.97);}
+.empty{text-align:center;padding:28px 16px;color:var(--text3);}
+.empty-icon{font-size:36px;opacity:0.25;margin-bottom:8px;}
+.empty-txt{font-size:13px;line-height:1.6;}
+.toast-el{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--bg3);border:1px solid rgba(255,255,255,0.15);border-radius:11px;padding:10px 18px;font-size:13px;color:var(--text);z-index:500;white-space:nowrap;animation:tin 0.2s ease;}
+@keyframes tin{from{opacity:0;transform:translate(-50%,8px)}to{opacity:1;transform:translate(-50%,0)}}
+/* SETTINGS */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:200;display:flex;align-items:flex-end;}
+.overlay.hidden{display:none;}
+.sheet{background:var(--bg2);border-radius:22px 22px 0 0;padding:22px 18px;width:100%;border-top:1px solid rgba(255,255,255,0.12);max-height:85vh;overflow-y:auto;}
+.handle{width:38px;height:4px;background:rgba(255,255,255,0.15);border-radius:2px;margin:0 auto 18px;}
+.sheet-title{font-size:15px;font-weight:600;margin-bottom:16px;}
+.ai-opt{background:var(--bg3);border:1px solid var(--border);border-radius:11px;padding:13px;margin-bottom:9px;cursor:pointer;}
+.ai-opt.sel{border-color:var(--accent);background:rgba(0,212,170,0.06);}
+.ai-opt-head{display:flex;align-items:center;justify-content:space-between;}
+.ai-opt-name{font-size:13px;font-weight:500;}
+.ai-tag-free{font-size:9px;font-weight:600;padding:2px 6px;border-radius:4px;background:rgba(0,212,170,0.12);color:var(--accent);}
+.ai-tag-paid{font-size:9px;font-weight:600;padding:2px 6px;border-radius:4px;background:rgba(255,179,71,0.12);color:var(--warn);}
+.ai-desc{font-size:11px;color:var(--text2);margin-top:3px;}
+.key-field{margin-top:9px;display:none;}
+.ai-opt.sel .key-field{display:block;}
+.key-note{font-size:10px;color:var(--text3);margin-top:4px;}
+.btn-close-sheet{width:100%;padding:14px;background:var(--bg3);color:var(--text);border:1px solid var(--border);border-radius:11px;font-size:14px;font-weight:500;cursor:pointer;margin-top:14px;font-family:inherit;}
+/* EXPORT PANEL */
+.exp-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.92);z-index:300;display:flex;align-items:center;justify-content:center;padding:20px;}
+.exp-card{background:var(--bg2);border-radius:18px;padding:22px 18px;width:100%;max-width:360px;text-align:center;border:1px solid rgba(255,255,255,0.1);}
+.exp-icon{font-size:44px;margin-bottom:10px;}
+.exp-title{font-size:17px;font-weight:700;color:var(--text);margin-bottom:5px;}
+.exp-sub{font-size:12px;color:var(--text2);margin-bottom:20px;}
+.code-box{background:var(--bg3);border-radius:11px;padding:14px;margin-bottom:14px;}
+.code-label{font-size:10px;color:var(--text2);letter-spacing:0.06em;text-transform:uppercase;margin-bottom:6px;}
+.code-val{font-size:28px;font-weight:700;color:#e3b341;letter-spacing:6px;}
+.code-hint{font-size:10px;color:var(--text3);margin-top:5px;}
+.btn-copy{width:100%;padding:14px;background:#e3b341;color:#0f1923;border:none;border-radius:11px;font-size:14px;font-weight:700;cursor:pointer;margin-bottom:9px;font-family:inherit;}
+.btn-copy:active{transform:scale(0.97);}
+.btn-close-exp{width:100%;padding:13px;background:rgba(255,255,255,0.06);color:var(--text2);border:1px solid rgba(255,255,255,0.1);border-radius:11px;font-size:13px;cursor:pointer;font-family:inherit;}
 </style>
 </head>
 <body>
 
 <div class="header">
   <div class="logo">
-    <div class="logo-icon">
-      <svg viewBox="0 0 24 24"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 10.99h7c-.53 4.12-3.28 7.79-7 8.94V12H5V6.3l7-3.11v8.8z"/></svg>
-    </div>
+    <div class="logo-icon">🛡️</div>
     <div>
       <div class="logo-text">SafeInspect</div>
       <div class="logo-sub">CAMPO · MÓVIL</div>
     </div>
   </div>
-  <div class="header-right">
-    <div class="sync-badge" id="ai-badge">● GEMINI</div>
-    <div class="settings-btn" onclick="openSettings()">⚙</div>
+  <div style="display:flex;align-items:center;gap:8px;">
+    <div class="ai-badge" id="ai-badge">● GEMINI</div>
+    <div class="gear-btn" onclick="openSettings()">⚙</div>
   </div>
 </div>
 
 <div class="main">
-
-  <!-- Info empresa -->
-  <div class="empresa-card">
-    <div class="field-group">
-      <div class="field-label">Empresa cliente</div>
-      <input class="field-input" id="empresa" placeholder="Nombre de la empresa" oninput="saveSession()">
+  <!-- Empresa -->
+  <div class="card">
+    <div class="fg">
+      <div class="label">Empresa cliente</div>
+      <input class="inp" id="empresa" placeholder="Nombre de la empresa">
     </div>
-    <div class="fields-row">
-      <div class="field-group">
-        <div class="field-label">Área / Zona</div>
-        <input class="field-input" id="area-default" placeholder="Planta, bodega..." oninput="saveSession()">
+    <div class="row2">
+      <div class="fg">
+        <div class="label">Área / Zona</div>
+        <input class="inp" id="area-def" placeholder="Planta, bodega...">
       </div>
-      <div class="field-group">
-        <div class="field-label">Inspector</div>
-        <input class="field-input" id="inspector" placeholder="Tu nombre" oninput="saveSession()">
+      <div class="fg">
+        <div class="label">Inspector</div>
+        <input class="inp" id="inspector" placeholder="Tu nombre">
       </div>
     </div>
   </div>
 
-  <!-- Captura -->
-  <div class="camera-zone">
-    <div class="camera-header">
-      <div class="camera-title">Capturar evidencias</div>
-      <div class="counter-badge" id="photo-counter">0 fotos</div>
+  <!-- Cámara -->
+  <div class="card">
+    <div class="cam-header">
+      <div class="cam-title">Capturar evidencias</div>
+      <div class="count-badge" id="count-badge">0 fotos</div>
     </div>
-    <div class="capture-area">
-      <button class="capture-btn" onclick="document.getElementById('cam-input').click()">
-        <svg viewBox="0 0 24 24"><path d="M12 15.2A3.2 3.2 0 0 1 8.8 12 3.2 3.2 0 0 1 12 8.8 3.2 3.2 0 0 1 15.2 12 3.2 3.2 0 0 1 12 15.2M20 4h-3.17L15 2H9L7.17 4H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z"/></svg>
-        Tomar foto ahora
-      </button>
-      <button class="gallery-btn" onclick="document.getElementById('gallery-input').click()">
-        📁 Seleccionar de galería
-      </button>
-      <input type="file" id="cam-input" accept="image/*" capture="environment" onchange="handleFiles(this.files)">
-      <input type="file" id="gallery-input" accept="image/*" multiple onchange="handleFiles(this.files)">
-    </div>
+    <button class="btn-cam" onclick="document.getElementById('fi-cam').click()">
+      📷 Tomar foto ahora
+    </button>
+    <button class="btn-gal" onclick="document.getElementById('fi-gal').click()">
+      📁 Seleccionar de galería
+    </button>
+    <input type="file" id="fi-cam" accept="image/*" capture="environment" onchange="onFiles(this.files)">
+    <input type="file" id="fi-gal" accept="image/*" multiple onchange="onFiles(this.files)">
   </div>
 
-  <!-- Lista de fotos -->
-  <div class="photos-list" id="photos-list">
-    <div class="empty-state" id="empty-state">
+  <!-- Fotos -->
+  <div class="photo-list" id="photo-list">
+    <div class="empty" id="empty-state">
       <div class="empty-icon">📸</div>
-      <div class="empty-text">Aún no hay fotos.<br>Toma una foto o selecciona de tu galería.</div>
+      <div class="empty-txt">Aún no hay fotos.<br>Toma una foto o selecciona de galería.</div>
     </div>
   </div>
 
   <!-- Enviar -->
-  <div class="submit-section" id="submit-section">
-    <button class="submit-btn" id="submit-btn" onclick="submitInspection()">
-      ✅ Enviar inspección al dashboard
-    </button>
-    <div class="submit-hint">Los resultados aparecerán en el dashboard en segundos</div>
-  </div>
-
+  <button class="btn-send" onclick="sendInspection()">
+    ✅ Enviar inspección al dashboard
+  </button>
 </div>
 
-<!-- Settings Modal -->
-<div class="modal-overlay hidden" id="settings-modal">
-  <div class="modal">
-    <div class="modal-handle"></div>
-    <div class="modal-title">Configuración de IA</div>
+<!-- Settings -->
+<div class="overlay hidden" id="settings-overlay">
+  <div class="sheet">
+    <div class="handle"></div>
+    <div class="sheet-title">Configuración de IA</div>
 
-    <div class="ai-option selected" id="opt-gemini" onclick="selectAI('gemini')">
-      <div class="ai-option-head">
-        <div class="ai-name">Google Gemini Flash</div>
-        <span class="ai-tag tag-free">GRATIS</span>
+    <div class="ai-opt sel" id="opt-gemini" onclick="selectAI('gemini')">
+      <div class="ai-opt-head">
+        <span class="ai-opt-name">Google Gemini Flash</span>
+        <span class="ai-tag-free">GRATIS</span>
       </div>
       <div class="ai-desc">1,500 análisis/día · Sin tarjeta · Recomendado</div>
-      <div class="api-key-field">
-        <div class="field-label" style="margin-top:8px">API Key de Gemini</div>
-        <input class="field-input" id="key-gemini" placeholder="AIza..." oninput="saveConfig()">
-        <div style="font-size:10px;color:#4a5f72;margin-top:5px;font-family:'DM Mono',monospace">Obtén tu key gratis en: aistudio.google.com</div>
+      <div class="key-field">
+        <div class="label">API Key de Gemini</div>
+        <input class="inp" id="key-gemini" placeholder="AIza..." oninput="saveConf()">
+        <div class="key-note">Obtén tu key gratis en: aistudio.google.com</div>
       </div>
     </div>
 
-    <div class="ai-option" id="opt-claude" onclick="selectAI('claude')">
-      <div class="ai-option-head">
-        <div class="ai-name">Claude (Anthropic)</div>
-        <span class="ai-tag tag-paid">DE PAGO</span>
+    <div class="ai-opt" id="opt-claude" onclick="selectAI('claude')">
+      <div class="ai-opt-head">
+        <span class="ai-opt-name">Claude (Anthropic)</span>
+        <span class="ai-tag-paid">DE PAGO</span>
       </div>
       <div class="ai-desc">claude-sonnet-4 · Análisis muy detallado</div>
-      <div class="api-key-field">
-        <div class="field-label" style="margin-top:8px">API Key de Anthropic</div>
-        <input class="field-input" id="key-claude" placeholder="sk-ant-..." oninput="saveConfig()">
-        <div style="font-size:10px;color:#4a5f72;margin-top:5px;font-family:'DM Mono',monospace">console.anthropic.com</div>
+      <div class="key-field">
+        <div class="label">API Key</div>
+        <input class="inp" id="key-claude" placeholder="sk-ant-..." oninput="saveConf()">
       </div>
     </div>
 
-    <div class="ai-option" id="opt-openai" onclick="selectAI('openai')">
-      <div class="ai-option-head">
-        <div class="ai-name">OpenAI GPT-4o</div>
-        <span class="ai-tag tag-paid">DE PAGO</span>
+    <div class="ai-opt" id="opt-openai" onclick="selectAI('openai')">
+      <div class="ai-opt-head">
+        <span class="ai-opt-name">OpenAI GPT-4o</span>
+        <span class="ai-tag-paid">DE PAGO</span>
       </div>
-      <div class="ai-desc">GPT-4o mini · $5 crédito inicial gratis</div>
-      <div class="api-key-field">
-        <div class="field-label" style="margin-top:8px">API Key de OpenAI</div>
-        <input class="field-input" id="key-openai" placeholder="sk-..." oninput="saveConfig()">
-        <div style="font-size:10px;color:#4a5f72;margin-top:5px;font-family:'DM Mono',monospace">platform.openai.com</div>
-      </div>
-    </div>
-
-    <div class="ai-option" id="opt-copilot" onclick="selectAI('copilot')">
-      <div class="ai-option-head">
-        <div class="ai-name">Microsoft Copilot</div>
-        <span class="ai-tag tag-free">GRATIS con M365</span>
-      </div>
-      <div class="ai-desc">Azure OpenAI · Ideal si tienes Microsoft 365</div>
-      <div class="api-key-field">
-        <div class="field-label" style="margin-top:8px">Azure Endpoint</div>
-        <input class="field-input" id="key-copilot-endpoint" placeholder="https://....openai.azure.com/" oninput="saveConfig()">
-        <div class="field-label" style="margin-top:8px">Azure API Key</div>
-        <input class="field-input" id="key-copilot" placeholder="Azure OpenAI key..." oninput="saveConfig()">
-        <div style="font-size:10px;color:#4a5f72;margin-top:5px;font-family:'DM Mono',monospace">portal.azure.com → Azure OpenAI</div>
+      <div class="ai-desc">GPT-4o mini · $5 crédito inicial</div>
+      <div class="key-field">
+        <div class="label">API Key</div>
+        <input class="inp" id="key-openai" placeholder="sk-..." oninput="saveConf()">
       </div>
     </div>
 
-    <div style="margin-top:14px">
-      <div class="field-label">URL del Worker (backend)</div>
-      <input class="field-input" id="worker-url" placeholder="https://safeinspect.TU-USUARIO.workers.dev" oninput="saveConfig()">
-      <div style="font-size:10px;color:#4a5f72;margin-top:5px;font-family:'DM Mono',monospace">Configura después de desplegar el Worker</div>
+    <div class="ai-opt" id="opt-copilot" onclick="selectAI('copilot')">
+      <div class="ai-opt-head">
+        <span class="ai-opt-name">Microsoft Copilot</span>
+        <span class="ai-tag-free">GRATIS con M365</span>
+      </div>
+      <div class="ai-desc">Azure OpenAI · Para usuarios de Microsoft 365</div>
+      <div class="key-field">
+        <div class="label">Azure Endpoint</div>
+        <input class="inp" id="key-copilot-ep" placeholder="https://....openai.azure.com/" oninput="saveConf()">
+        <div class="label" style="margin-top:8px;">Azure API Key</div>
+        <input class="inp" id="key-copilot" placeholder="Azure key..." oninput="saveConf()">
+      </div>
     </div>
 
-    <button style="width:100%;padding:16px;background:#00d4aa;color:#0f1923;border:none;border-radius:12px;font-size:15px;font-weight:700;font-family:DM Sans,sans-serif;cursor:pointer;margin-top:10px;letter-spacing:-0.2px;" onclick="var m=document.getElementById('settings-modal');m.style.display='none';m.classList.add('hidden');saveConfig();">✓ Guardar y cerrar</button>
+    <button class="btn-close-sheet" onclick="closeSettings()">✓ Guardar y cerrar</button>
   </div>
 </div>
 
 <script>
+// ─── STATE ───────────────────────────────────────────────
 let photos = [];
 let currentAI = 'gemini';
-let config = {};
 
-function loadConfig() {
+const PROMPT = `Eres experto en seguridad industrial SST. Analiza esta imagen de inspección.
+Responde SOLO JSON sin texto extra ni backticks:
+{"hazards":[{"title":"...","description":"...","severity":"alta|media|baja"}],"recs":[{"title":"...","description":"..."}],"summary":"..."}
+Identifica 2-4 peligros reales. Si no hay peligros evidentes, analiza riesgos potenciales.`;
+
+// ─── CONFIG ──────────────────────────────────────────────
+function loadConf() {
   try {
-    config = JSON.parse(localStorage.getItem('si_config') || '{}');
-    currentAI = config.ai || 'gemini';
-    if (config.workerUrl) document.getElementById('worker-url').value = config.workerUrl;
-    if (config.keyGemini) document.getElementById('key-gemini').value = config.keyGemini;
-    if (config.keyClaude) document.getElementById('key-claude').value = config.keyClaude;
-    if (config.keyOpenai) document.getElementById('key-openai').value = config.keyOpenai;
-    if (config.keyCopilot) document.getElementById('key-copilot').value = config.keyCopilot;
-    if (config.keyCopilotEndpoint) document.getElementById('key-copilot-endpoint').value = config.keyCopilotEndpoint;
+    const c = JSON.parse(localStorage.getItem('si_conf') || '{}');
+    currentAI = c.ai || 'gemini';
+    if (c.keyGemini) document.getElementById('key-gemini').value = c.keyGemini;
+    if (c.keyClaude) document.getElementById('key-claude').value = c.keyClaude;
+    if (c.keyOpenai) document.getElementById('key-openai').value = c.keyOpenai;
+    if (c.keyCopilot) document.getElementById('key-copilot').value = c.keyCopilot;
+    if (c.keyCopilotEp) document.getElementById('key-copilot-ep').value = c.keyCopilotEp;
+    if (c.empresa) document.getElementById('empresa').value = c.empresa;
+    if (c.area) document.getElementById('area-def').value = c.area;
+    if (c.inspector) document.getElementById('inspector').value = c.inspector;
     selectAI(currentAI);
-    const s = JSON.parse(localStorage.getItem('si_session') || '{}');
-    if (s.empresa) document.getElementById('empresa').value = s.empresa;
-    if (s.area) document.getElementById('area-default').value = s.area;
-    if (s.inspector) document.getElementById('inspector').value = s.inspector;
   } catch(e) {}
 }
 
-function saveConfig() {
-  config = {
+function saveConf() {
+  const c = {
     ai: currentAI,
-    workerUrl: document.getElementById('worker-url').value,
     keyGemini: document.getElementById('key-gemini').value,
     keyClaude: document.getElementById('key-claude').value,
     keyOpenai: document.getElementById('key-openai').value,
     keyCopilot: document.getElementById('key-copilot').value,
-    keyCopilotEndpoint: document.getElementById('key-copilot-endpoint').value,
-  };
-  localStorage.setItem('si_config', JSON.stringify(config));
-}
-
-function saveSession() {
-  localStorage.setItem('si_session', JSON.stringify({
+    keyCopilotEp: document.getElementById('key-copilot-ep').value,
     empresa: document.getElementById('empresa').value,
-    area: document.getElementById('area-default').value,
+    area: document.getElementById('area-def').value,
     inspector: document.getElementById('inspector').value,
-  }));
+  };
+  localStorage.setItem('si_conf', JSON.stringify(c));
 }
 
+['empresa','area-def','inspector'].forEach(id => {
+  document.getElementById(id).addEventListener('input', saveConf);
+});
+
+// ─── SETTINGS ────────────────────────────────────────────
 function selectAI(ai) {
   currentAI = ai;
   ['gemini','claude','openai','copilot'].forEach(id => {
-    document.getElementById('opt-'+id).classList.remove('selected');
+    document.getElementById('opt-'+id).classList.remove('sel');
   });
-  document.getElementById('opt-'+ai).classList.add('selected');
-  const labels = { gemini:'● GEMINI', claude:'● CLAUDE', openai:'● GPT-4o', copilot:'● COPILOT' };
+  document.getElementById('opt-'+ai).classList.add('sel');
+  const labels = {gemini:'● GEMINI', claude:'● CLAUDE', openai:'● GPT-4o', copilot:'● COPILOT'};
   document.getElementById('ai-badge').textContent = labels[ai] || '● GEMINI';
-  saveConfig();
+  saveConf();
 }
 
 function openSettings() {
-  document.getElementById('settings-modal').classList.remove('hidden');
-}
-function closeSettings(e) {
-  if (!e || e.target === document.getElementById('settings-modal')) {
-    saveConfig();
-    document.getElementById('settings-modal').classList.add('hidden');
-    document.getElementById('settings-modal').style.display = 'none';
-  }
-}
-function forceCloseSettings() {
-  saveConfig();
-  document.getElementById('settings-modal').classList.add('hidden');
-  document.getElementById('settings-modal').style.display = 'none';
+  document.getElementById('settings-overlay').classList.remove('hidden');
 }
 
-async function handleFiles(fileList) {
-  if (!fileList || fileList.length === 0) return;
-  const files = Array.from(fileList);
-  for (const file of files) {
-    if (file && file.type.startsWith('image/')) {
-      await addPhoto(file);
-    }
-  }
-  // Reset input so same photo can be selected again
-  document.getElementById('cam-input').value = '';
-  document.getElementById('gallery-input').value = '';
+function closeSettings() {
+  saveConf();
+  document.getElementById('settings-overlay').classList.add('hidden');
 }
 
-async function addPhoto(file) {
-  const id = Date.now() + Math.random();
-  const dataUrl = await readFile(file);
-  const photo = {
-    id, file, name: file.name, dataUrl,
-    area: document.getElementById('area-default').value || '',
-    status: 'pending', hazards: [], recs: [], summary: '', severity: 'media',
-    notes: '', expanded: false
-  };
-  photos.push(photo);
-  renderPhotos();
-  document.getElementById('submit-section').style.display = 'block';
-  updateCounter();
-  analyzePhoto(photo.id);
+// Close settings when tapping backdrop
+document.getElementById('settings-overlay').addEventListener('click', function(e) {
+  if (e.target === this) closeSettings();
+});
+
+// ─── FILES ───────────────────────────────────────────────
+function onFiles(fileList) {
+  if (!fileList || !fileList.length) return;
+  Array.from(fileList).forEach(file => {
+    if (!file.type.startsWith('image/')) return;
+    const reader = new FileReader();
+    reader.onload = e => {
+      const photo = {
+        id: Date.now() + Math.random(),
+        name: file.name,
+        dataUrl: e.target.result,
+        area: document.getElementById('area-def').value || '',
+        status: 'pending',
+        hazards: [], recs: [], summary: '', severity: 'baja',
+        notes: '', expanded: false
+      };
+      photos.push(photo);
+      renderList();
+      analyzePhoto(photo.id);
+    };
+    reader.readAsDataURL(file);
+  });
+  // Reset inputs
+  document.getElementById('fi-cam').value = '';
+  document.getElementById('fi-gal').value = '';
 }
 
-function readFile(file) {
-  return new Promise(res => {
-    const r = new FileReader();
-    r.onload = e => res(e.target.result);
-    r.readAsDataURL(file);
+// ─── RENDER ──────────────────────────────────────────────
+function renderList() {
+  const list = document.getElementById('photo-list');
+  const empty = document.getElementById('empty-state');
+  document.getElementById('count-badge').textContent = photos.length + (photos.length===1?' foto':' fotos');
+  
+  if (!photos.length) { empty.style.display='block'; return; }
+  empty.style.display = 'none';
+  
+  // Rebuild all cards
+  const cards = {};
+  list.querySelectorAll('.photo-card').forEach(el => cards[el.dataset.id] = el);
+  
+  photos.forEach(p => {
+    let card = list.querySelector('[data-id="'+p.id+'"]');
+    if (!card) { card = document.createElement('div'); card.className='photo-card'; card.dataset.id=p.id; list.appendChild(card); }
+    
+    const dotClass = {pending:'dot-pend', analyzing:'dot-wait', done:'dot-ok', error:'dot-err'}[p.status];
+    const statusTxt = {pending:'Pendiente', analyzing:'Analizando...', done:'Analizado', error:'Error'}[p.status];
+    const sevHtml = p.status==='done' ? `<span class="sev sev-${p.severity}">${p.severity.toUpperCase()}</span>` : '';
+    const errHtml = p.status==='error' ? `<div class="err-txt">${p.summary}</div>` : '';
+    const expandHtml = p.status==='done'&&p.hazards.length ? `<button class="expand-btn" onclick="toggleExp(${p.id})">${p.expanded?'▲ Ocultar':'▼ Ver '+p.hazards.length+' peligros'}</button>` : '';
+    
+    const detailHtml = p.expanded && p.status==='done' ? `
+      <div class="photo-detail">
+        ${p.summary ? `<div style="font-size:11px;color:var(--text2);margin-bottom:8px;font-style:italic;">${p.summary}</div>` : ''}
+        ${p.hazards.map(h=>`
+          <div class="hazard-item">
+            <span class="sev sev-${h.severity}" style="flex-shrink:0;margin-top:2px;">${h.severity.toUpperCase()}</span>
+            <div><div class="haz-title">${h.title}</div><div class="haz-desc">${h.description}</div></div>
+          </div>`).join('')}
+        <textarea class="note-inp" rows="2" placeholder="Notas del inspector..." onchange="setNote(${p.id},this.value)">${p.notes}</textarea>
+      </div>` : '';
+
+    card.innerHTML = `
+      <div class="photo-row">
+        <div class="photo-thumb-wrap">
+          <img class="photo-thumb" src="${p.dataUrl}">
+          <button class="del-btn" onclick="delPhoto(${p.id})">✕</button>
+        </div>
+        <div class="photo-info">
+          <div class="photo-fname">${p.name}</div>
+          <div class="photo-area-txt">${p.area||'Sin área'}</div>
+          <div class="status-row">
+            <div class="dot ${dotClass}"></div>
+            <span class="status-txt">${statusTxt}</span>
+            ${sevHtml}
+          </div>
+          ${errHtml}
+          ${expandHtml}
+        </div>
+      </div>
+      ${detailHtml}`;
+  });
+  
+  // Remove cards not in photos
+  list.querySelectorAll('.photo-card').forEach(el => {
+    if (!photos.find(p => p.id == el.dataset.id)) el.remove();
   });
 }
 
-async function analyzePhoto(id) {
-  const photo = photos.find(p => p.id === id);
-  if (!photo) return;
-  photo.status = 'analyzing';
-  renderPhotos();
+function toggleExp(id) {
+  const p = photos.find(x=>x.id===id);
+  if (p) { p.expanded=!p.expanded; renderList(); }
+}
 
-  const base64 = photo.dataUrl.split(',')[1];
-  const mime = photo.dataUrl.split(';')[0].split(':')[1] || 'image/jpeg';
+function delPhoto(id) {
+  photos = photos.filter(p=>p.id!==id);
+  const el = document.querySelector('[data-id="'+id+'"]');
+  if (el) el.remove();
+  document.getElementById('count-badge').textContent = photos.length+(photos.length===1?' foto':' fotos');
+  if (!photos.length) document.getElementById('empty-state').style.display='block';
+}
+
+function setNote(id, val) {
+  const p = photos.find(x=>x.id===id);
+  if (p) p.notes = val;
+}
+
+// ─── ANALYZE ─────────────────────────────────────────────
+async function analyzePhoto(id) {
+  const p = photos.find(x=>x.id===id);
+  if (!p) return;
+  p.status = 'analyzing';
+  renderList();
+
+  const base64 = p.dataUrl.split(',')[1];
+  const mime = p.dataUrl.split(';')[0].split(':')[1] || 'image/jpeg';
 
   try {
-    let result;
-    // Llama siempre directamente a la IA (Gemini, Claude, etc.) sin pasar por Worker
-    result = await analyzeDirectly(base64, mime, photo.area);
-    photo.hazards = result.hazards || [];
-    photo.recs = result.recs || [];
-    photo.summary = result.summary || '';
-    photo.severity = photo.hazards.some(h=>h.severity==='alta') ? 'alta' : photo.hazards.some(h=>h.severity==='media') ? 'media' : 'baja';
-    photo.status = 'done';
+    const result = await callAI(base64, mime);
+    p.hazards = result.hazards || [];
+    p.recs = result.recs || [];
+    p.summary = result.summary || '';
+    p.severity = p.hazards.some(h=>h.severity==='alta')?'alta':p.hazards.some(h=>h.severity==='media')?'media':'baja';
+    p.status = 'done';
   } catch(e) {
-    photo.status = 'error';
-    photo.summary = 'Error: ' + e.message;
+    p.status = 'error';
+    p.summary = e.message;
   }
-  renderPhotos();
+  renderList();
 }
 
-async function analyzeViaWorker(url, base64, mime, area) {
-  const res = await fetch(url + '/analyze', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ base64, mime, area, ai: currentAI, config })
-  });
-  if (!res.ok) throw new Error('Worker error ' + res.status);
-  return await res.json();
-}
-
-async function analyzeDirectly(base64, mime, area) {
+async function callAI(base64, mime) {
   const ai = currentAI;
-  const prompt = `Eres experto en seguridad industrial y SST. Analiza esta imagen de inspección. Responde SOLO JSON sin backticks:
-{"hazards":[{"title":"...","description":"...","severity":"alta|media|baja"}],"recs":[{"title":"...","description":"..."}],"summary":"..."}
-Identifica 2-4 peligros reales. Si no hay peligros evidentes, analiza riesgos potenciales.`;
 
   if (ai === 'gemini') {
-    const key = document.getElementById('key-gemini').value;
-    if (!key) throw new Error('Configura tu API key de Gemini en ⚙');
-    // Usa v1 con gemini-1.5-flash (más estable)
-    const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=${key}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ contents: [{ parts: [
-        { inline_data: { mime_type: mime, data: base64 } },
-        { text: prompt }
-      ]}] })
-    });
-    const d = await res.json();
-    if (d.error) throw new Error(d.error.message);
-    const txt = d.candidates?.[0]?.content?.parts?.[0]?.text || '';
-    return JSON.parse(txt.replace(/```json|```/g,'').trim());
+    const key = document.getElementById('key-gemini').value.trim();
+    if (!key) throw new Error('Configura tu API Key de Gemini en ⚙');
+    const models = ['gemini-2.5-flash-lite', 'gemini-2.0-flash-lite', 'gemini-2.0-flash'];
+    let lastErr = '';
+    for (const model of models) {
+      try {
+        const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${key}`, {
+          method:'POST', headers:{'Content-Type':'application/json'},
+          body: JSON.stringify({contents:[{parts:[
+            {inline_data:{mime_type:mime,data:base64}},
+            {text:PROMPT}
+          ]}]})
+        });
+        const d = await res.json();
+        if (d.error) { lastErr=d.error.message; continue; }
+        const txt = d.candidates?.[0]?.content?.parts?.[0]?.text||'';
+        return JSON.parse(txt.replace(/```json|```/g,'').trim());
+      } catch(e) { lastErr=e.message; continue; }
+    }
+    throw new Error(lastErr || 'Gemini: todos los modelos fallaron');
   }
 
   if (ai === 'claude') {
-    const key = document.getElementById('key-claude').value;
-    if (!key) throw new Error('Configura tu API key de Claude en ⚙');
+    const key = document.getElementById('key-claude').value.trim();
+    if (!key) throw new Error('Configura tu API Key de Claude en ⚙');
     const res = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: { 'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-calls':'true' },
-      body: JSON.stringify({ model:'claude-sonnet-4-20250514', max_tokens:800,
-        messages:[{ role:'user', content:[
-          { type:'image', source:{ type:'base64', media_type:mime, data:base64 }},
-          { type:'text', text:prompt }
-        ]}]
-      })
+      method:'POST',
+      headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-calls':'true'},
+      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:800,messages:[{role:'user',content:[
+        {type:'image',source:{type:'base64',media_type:mime,data:base64}},
+        {type:'text',text:PROMPT}
+      ]}]})
     });
     const d = await res.json();
-    const txt = d.content?.map(c=>c.text||'').join('') || '';
+    if (d.error) throw new Error(d.error.message);
+    const txt = d.content?.map(c=>c.text||'').join('')||'';
     return JSON.parse(txt.replace(/```json|```/g,'').trim());
   }
 
   if (ai === 'openai') {
-    const key = document.getElementById('key-openai').value;
-    if (!key) throw new Error('Configura tu API key de OpenAI en ⚙');
+    const key = document.getElementById('key-openai').value.trim();
+    if (!key) throw new Error('Configura tu API Key de OpenAI en ⚙');
     const res = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: { 'Content-Type':'application/json','Authorization':'Bearer '+key },
-      body: JSON.stringify({ model:'gpt-4o-mini', max_tokens:800,
-        messages:[{ role:'user', content:[
-          { type:'image_url', image_url:{ url:'data:'+mime+';base64,'+base64 }},
-          { type:'text', text:prompt }
-        ]}]
-      })
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+key},
+      body:JSON.stringify({model:'gpt-4o-mini',max_tokens:800,messages:[{role:'user',content:[
+        {type:'image_url',image_url:{url:'data:'+mime+';base64,'+base64}},
+        {type:'text',text:PROMPT}
+      ]}]})
     });
     const d = await res.json();
     if (d.error) throw new Error(d.error.message);
-    const txt = d.choices?.[0]?.message?.content || '';
-    return JSON.parse(txt.replace(/```json|```/g,'').trim());
+    return JSON.parse((d.choices?.[0]?.message?.content||'').replace(/```json|```/g,'').trim());
   }
 
   if (ai === 'copilot') {
-    const key = document.getElementById('key-copilot').value;
-    const endpoint = document.getElementById('key-copilot-endpoint').value;
-    if (!key || !endpoint) throw new Error('Configura endpoint y key de Azure en ⚙');
-    const res = await fetch(endpoint + 'openai/deployments/gpt-4o/chat/completions?api-version=2024-02-15-preview', {
-      method: 'POST',
-      headers: { 'Content-Type':'application/json','api-key':key },
-      body: JSON.stringify({ max_tokens:800,
-        messages:[{ role:'user', content:[
-          { type:'image_url', image_url:{ url:'data:'+mime+';base64,'+base64 }},
-          { type:'text', text:prompt }
-        ]}]
-      })
+    const key = document.getElementById('key-copilot').value.trim();
+    const ep = document.getElementById('key-copilot-ep').value.trim();
+    if (!key||!ep) throw new Error('Configura endpoint y key de Azure en ⚙');
+    const res = await fetch(ep.replace(/\/$/,'') + '/openai/deployments/gpt-4o/chat/completions?api-version=2024-02-15-preview', {
+      method:'POST',
+      headers:{'Content-Type':'application/json','api-key':key},
+      body:JSON.stringify({max_tokens:800,messages:[{role:'user',content:[
+        {type:'image_url',image_url:{url:'data:'+mime+';base64,'+base64}},
+        {type:'text',text:PROMPT}
+      ]}]})
     });
     const d = await res.json();
     if (d.error) throw new Error(d.error.message);
-    const txt = d.choices?.[0]?.message?.content || '';
-    return JSON.parse(txt.replace(/```json|```/g,'').trim());
+    return JSON.parse((d.choices?.[0]?.message?.content||'').replace(/```json|```/g,'').trim());
   }
 
   throw new Error('IA no configurada');
 }
 
-function renderPhotos() {
-  const list = document.getElementById('photos-list');
-  const empty = document.getElementById('empty-state');
-  if (!photos.length) { empty.style.display='block'; list.innerHTML=''; list.appendChild(empty); return; }
-  empty.style.display='none';
-  const existing = new Set(Array.from(list.querySelectorAll('.photo-card')).map(el=>el.dataset.id));
-  photos.forEach(p => {
-    let card = list.querySelector('[data-id="'+p.id+'"]');
-    if (!card) {
-      card = document.createElement('div');
-      card.className = 'photo-card';
-      card.dataset.id = p.id;
-      list.appendChild(card);
-    }
-    const statusMap = { pending:'● Pendiente', analyzing:'● Analizando...', done:'● Analizado', error:'● Error' };
-    const dotMap = { pending:'dot-pending', analyzing:'dot-analyzing', done:'dot-done', error:'dot-error' };
-    const sevHtml = p.status==='done' ? `<span class="sev-pill sev-${p.severity}">${p.severity.toUpperCase()}</span>` : '';
-    card.innerHTML = `
-      <div class="photo-card-inner">
-        <div class="photo-thumb-wrap">
-          <img class="photo-thumb" src="${p.dataUrl}">
-          <button class="delete-btn" onclick="deletePhoto(${p.id})">✕</button>
-        </div>
-        <div class="photo-info">
-          <div class="photo-name">${p.name}</div>
-          <div class="photo-area">${p.area || 'Área no definida'}</div>
-          <div class="photo-status">
-            <div class="status-dot ${dotMap[p.status]}"></div>
-            <span class="status-text">${statusMap[p.status]}</span>
-            ${sevHtml}
-          </div>
-          ${p.status==='done'&&p.hazards.length ? `<button class="expand-btn" onclick="toggleExpand(${p.id})">${p.expanded?'▲ Ocultar':'▼ Ver '+p.hazards.length+' peligros'}</button>` : ''}
-          ${p.status==='error' ? `<div style="font-size:10px;color:#ff4d6d;margin-top:4px">${p.summary}</div>` : ''}
-        </div>
-      </div>
-      ${p.expanded && p.status==='done' ? `
-      <div class="photo-expand">
-        ${p.summary ? `<div style="font-size:11px;color:#8a9db0;margin-bottom:8px;font-style:italic">${p.summary}</div>` : ''}
-        ${p.hazards.map(h=>`
-          <div class="hazard-item">
-            <span class="sev-pill sev-${h.severity}" style="flex-shrink:0;margin-top:1px">${h.severity.toUpperCase()}</span>
-            <div><div class="hazard-title">${h.title}</div><div class="hazard-text">${h.description}</div></div>
-          </div>`).join('')}
-        <textarea class="notes-input" rows="2" placeholder="Notas adicionales del inspector..." onchange="photos.find(p=>p.id==${p.id}).notes=this.value">${p.notes}</textarea>
-      </div>` : ''}`;
-  });
-  updateCounter();
-}
-
-function toggleExpand(id) {
-  const p = photos.find(x=>x.id===id);
-  if (p) { p.expanded = !p.expanded; renderPhotos(); }
-}
-
-function deletePhoto(id) {
-  photos = photos.filter(p=>p.id!==id);
-  const card = document.querySelector('[data-id="'+id+'"]');
-  if (card) card.remove();
-  if (!photos.length) {
-    document.getElementById('empty-state').style.display='block';
-    document.getElementById('submit-section').style.display='none';
-  }
-  updateCounter();
-}
-
-function updateCounter() {
-  const n = photos.length;
-  document.getElementById('photo-counter').textContent = n + (n===1?' foto':' fotos');
-}
-
-async function submitInspection() {
+// ─── SEND ────────────────────────────────────────────────
+function sendInspection() {
   if (!photos.length) { showToast('⚠ No hay fotos cargadas'); return; }
-  
-  const pending = photos.filter(p => p.status === 'analyzing');
-  if (pending.length) { showToast('⏳ Esperando análisis de ' + pending.length + ' foto(s)...'); return; }
+  const analyzing = photos.filter(p=>p.status==='analyzing');
+  if (analyzing.length) { showToast('⏳ Esperando análisis de '+analyzing.length+' foto(s)...'); return; }
 
   const data = {
     id: 'INS-' + Date.now(),
     empresa: document.getElementById('empresa').value || 'Sin nombre',
     inspector: document.getElementById('inspector').value || 'Inspector',
-    area: document.getElementById('area-default').value || '',
+    area: document.getElementById('area-def').value || '',
     fecha: new Date().toISOString(),
-    photos: photos.map(p => ({
-      name: p.name, dataUrl: p.dataUrl, area: p.area,
-      status: p.status, hazards: p.hazards, recs: p.recs,
-      summary: p.summary, severity: p.severity, notes: p.notes
+    photos: photos.map(p=>({
+      name:p.name, dataUrl:p.dataUrl, area:p.area,
+      status:p.status, hazards:p.hazards, recs:p.recs,
+      summary:p.summary, severity:p.severity, notes:p.notes
     }))
   };
 
-  // Save to localStorage
+  // Save locally
   try {
-    const inspections = JSON.parse(localStorage.getItem('si_inspections') || '[]');
-    inspections.unshift(data);
-    localStorage.setItem('si_inspections', JSON.stringify(inspections.slice(0, 50)));
+    const all = JSON.parse(localStorage.getItem('si_inspections') || '[]');
+    all.unshift(data);
+    localStorage.setItem('si_inspections', JSON.stringify(all.slice(0,50)));
   } catch(e) {}
 
-  // Show export panel
   showExportPanel(data);
 }
 
 function showExportPanel(data) {
-  const old = document.getElementById('export-panel');
+  const old = document.getElementById('exp-overlay');
   if (old) old.remove();
 
-  // Save full inspection to localStorage
-  try {
-    const all = JSON.parse(localStorage.getItem('si_inspections') || '[]');
-    const exists = all.find(i => i.id === data.id);
-    if (!exists) { all.unshift(data); localStorage.setItem('si_inspections', JSON.stringify(all.slice(0,50))); }
-  } catch(e) {}
+  const totalPeligros = data.photos.reduce((a,p)=>a+p.hazards.length,0);
+  const shortId = data.id.slice(-6);
 
-  // Build a short URL-safe token with key info
-  const token = btoa(unescape(encodeURIComponent(JSON.stringify({
-    id: data.id,
-    empresa: data.empresa,
-    inspector: data.inspector,
-    area: data.area,
-    fecha: data.fecha,
-    total: data.photos.length,
-    peligros: data.photos.reduce((a,p)=>a+p.hazards.length,0),
-    photos: data.photos.map(p=>({
-      name:p.name, area:p.area, severity:p.severity,
-      summary:p.summary, hazards:p.hazards, recs:p.recs,
-      notes:p.notes, dataUrl:p.dataUrl
-    }))
-  }))));
+  // Build token
+  const token = btoa(unescape(encodeURIComponent(JSON.stringify(data))));
+  window._si_token = token;
 
-  // Store token for dashboard to pick up
-  localStorage.setItem('si_transfer_token', token);
-  localStorage.setItem('si_transfer_time', Date.now());
+  const overlay = document.createElement('div');
+  overlay.id = 'exp-overlay';
+  overlay.className = 'exp-overlay';
+  overlay.innerHTML = `
+    <div class="exp-card">
+      <div class="exp-icon">✅</div>
+      <div class="exp-title">Inspección lista</div>
+      <div class="exp-sub">${data.photos.length} foto(s) · ${totalPeligros} peligros · ${data.empresa}</div>
 
-  const hazardCount = data.photos.reduce((a,p)=>a+p.hazards.length,0);
-  const altaCount = data.photos.filter(p=>p.severity==='alta').length;
-
-  const panel = document.createElement('div');
-  panel.id = 'export-panel';
-  panel.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.92);z-index:999;display:flex;align-items:center;justify-content:center;padding:20px;';
-  panel.innerHTML = `
-    <div style="background:#161f2b;border-radius:20px;padding:24px 20px;width:100%;max-width:380px;text-align:center;border:1px solid rgba(255,255,255,0.1);">
-      <div style="font-size:40px;margin-bottom:12px;">✅</div>
-      <div style="font-size:17px;font-weight:700;color:#e8edf2;margin-bottom:6px;">Inspección guardada</div>
-      <div style="font-size:12px;color:#8a9db0;margin-bottom:24px;">
-        ${data.photos.length} foto(s) · ${hazardCount} peligros · ${altaCount} riesgo alto
+      <div class="code-box">
+        <div class="code-label">Código de inspección</div>
+        <div class="code-val">${shortId}</div>
+        <div class="code-hint">Anota este código para buscar en el dashboard</div>
       </div>
 
-      <div style="background:#1c2a38;border-radius:12px;padding:16px;margin-bottom:16px;text-align:left;">
-        <div style="font-size:11px;font-family:monospace;color:#00d4aa;margin-bottom:8px;text-transform:uppercase;letter-spacing:0.05em;">Código de inspección</div>
-        <div id="ins-code" style="font-size:22px;font-weight:700;color:#e3b341;letter-spacing:4px;text-align:center;padding:10px 0;">${data.id.replace('INS-','').slice(-6)}</div>
-        <div style="font-size:11px;color:#4a5f72;text-align:center;">Escribe este código en el dashboard</div>
+      <button class="btn-copy" id="copy-btn" onclick="copyToken()">
+        📋 Copiar datos completos
+      </button>
+      <div style="font-size:11px;color:var(--text3);margin-bottom:14px;line-height:1.6;">
+        En el dashboard toca <strong style="color:#e3b341;">"📤 Importar"</strong><br>
+        y pega los datos copiados
       </div>
-
-      <div style="background:#1c2a38;border-radius:12px;padding:14px;margin-bottom:16px;">
-        <div style="font-size:11px;color:#8a9db0;margin-bottom:8px;">O toca para copiar todos los datos:</div>
-        <button onclick="copyToken()" style="width:100%;padding:12px;background:#e3b341;color:#0d1117;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;font-family:DM Sans,sans-serif;">
-          📋 Copiar datos al portapapeles
-        </button>
-      </div>
-
-      <div style="font-size:11px;color:#4a5f72;margin-bottom:16px;line-height:1.6;">
-        En el dashboard toca <strong style="color:#e3b341;">"📤 Importar"</strong><br>y pega los datos copiados
-      </div>
-
-      <button onclick="document.getElementById('export-panel').remove()" 
-        style="width:100%;padding:13px;background:rgba(255,255,255,0.06);color:#8a9db0;border:1px solid rgba(255,255,255,0.1);border-radius:12px;font-size:14px;cursor:pointer;font-family:DM Sans,sans-serif;">
+      <button class="btn-close-exp" onclick="document.getElementById('exp-overlay').remove()">
         Cerrar
       </button>
     </div>`;
 
-  window._transferToken = token;
-  document.body.appendChild(panel);
+  document.body.appendChild(overlay);
 }
 
 function copyToken() {
-  const token = window._transferToken || localStorage.getItem('si_transfer_token') || '';
-  const payload = '{"type":"SAFEINSPECT_TOKEN","token":"' + token + '"}';
+  const payload = '{"type":"SAFEINSPECT_TOKEN","token":"' + (window._si_token||'') + '"}';
+  const btn = document.getElementById('copy-btn');
   
-  const copy = (text) => {
+  const doCopy = () => {
     if (navigator.clipboard && navigator.clipboard.writeText) {
-      return navigator.clipboard.writeText(text);
-    }
-    const ta = document.createElement('textarea');
-    ta.value = text; ta.style.cssText = 'position:fixed;opacity:0;top:0;left:0;';
-    document.body.appendChild(ta); ta.focus(); ta.select();
-    document.execCommand('copy'); document.body.removeChild(ta);
-    return Promise.resolve();
+      navigator.clipboard.writeText(payload)
+        .then(() => { if(btn){btn.textContent='✅ ¡Copiado!';btn.style.background='#3fb950';} showToast('✅ Datos copiados'); })
+        .catch(fallback);
+    } else { fallback(); }
   };
-
-  copy(payload).then(() => {
-    const btn = document.querySelector('#export-panel button');
-    if (btn) { btn.textContent = '✅ Copiado — ve al dashboard'; btn.style.background='#3fb950'; }
-    showToast('✅ Datos copiados');
-  }).catch(() => showToast('❌ No se pudo copiar automáticamente'));
-}
-
-
-function copyAndClose() {
-  const str = window._exportData || '{}';
-  if (navigator.clipboard && navigator.clipboard.writeText) {
-    navigator.clipboard.writeText(str).then(() => {
-      showToast('✅ Datos copiados — pégalos en el dashboard');
-      setTimeout(() => {
-        const p = document.getElementById('export-panel');
-        if (p) p.remove();
-      }, 1500);
-    }).catch(() => fallbackCopy(str));
-  } else {
-    fallbackCopy(str);
-  }
-}
-
-function fallbackCopy(str) {
-  const ta = document.createElement('textarea');
-  ta.value = str;
-  ta.style.cssText = 'position:fixed;top:0;left:0;opacity:0;';
-  document.body.appendChild(ta);
-  ta.focus();
-  ta.select();
-  try {
-    document.execCommand('copy');
-    showToast('✅ Datos copiados — pégalos en el dashboard');
-    setTimeout(() => {
-      const p = document.getElementById('export-panel');
-      if (p) p.remove();
-    }, 1500);
-  } catch(e) {
-    showToast('❌ No se pudo copiar — intenta manualmente');
-  }
-  document.body.removeChild(ta);
-}
-
-
-function saveLocally(data) {
-  const inspections = JSON.parse(localStorage.getItem('si_inspections') || '[]');
-  inspections.unshift(data);
-  localStorage.setItem('si_inspections', JSON.stringify(inspections.slice(0, 50)));
-  showToast('✅ Guardado — toca "Copiar datos" para enviar al dashboard');
-  showExportButton();
-}
-
-function showExportButton() {
-  // Remove existing export btn if any
-  const old = document.getElementById('export-data-btn');
-  if (old) old.remove();
   
-  const btn = document.createElement('div');
-  btn.id = 'export-data-btn';
-  btn.style.cssText = 'position:fixed;bottom:80px;left:16px;right:16px;z-index:100;';
-  
-  const inspections = JSON.parse(localStorage.getItem('si_inspections') || '[]');
-  const exportData = JSON.stringify({ type: 'SAFEINSPECT_EXPORT', inspections });
-  
-  btn.innerHTML = `
-    <button onclick="copyExportData()" style="width:100%;padding:16px;background:#e3b341;color:#0d1117;border:none;border-radius:14px;font-size:14px;font-weight:700;font-family:DM Sans,sans-serif;cursor:pointer;box-shadow:0 4px 20px rgba(0,0,0,0.4);">
-      📋 Copiar datos para el dashboard
-    </button>`;
-  document.body.appendChild(btn);
-}
-
-function copyExportData() {
-  const inspections = JSON.parse(localStorage.getItem('si_inspections') || '[]');
-  const exportData = JSON.stringify({ type: 'SAFEINSPECT_EXPORT', inspections });
-  if (navigator.clipboard) {
-    navigator.clipboard.writeText(exportData).then(() => {
-      showToast('✅ Datos copiados — pégalos en el dashboard');
-    });
-  } else {
-    // Fallback for older browsers
+  const fallback = () => {
     const ta = document.createElement('textarea');
-    ta.value = exportData;
-    document.body.appendChild(ta);
-    ta.select();
-    document.execCommand('copy');
+    ta.value = payload; ta.style.cssText='position:fixed;opacity:0;';
+    document.body.appendChild(ta); ta.focus(); ta.select();
+    try { document.execCommand('copy'); if(btn){btn.textContent='✅ ¡Copiado!';btn.style.background='#3fb950';} showToast('✅ Datos copiados'); }
+    catch(e) { showToast('❌ Copia manualmente el texto'); }
     document.body.removeChild(ta);
-    showToast('✅ Datos copiados — pégalos en el dashboard');
-  }
+  };
+  
+  doCopy();
 }
 
+// ─── TOAST ───────────────────────────────────────────────
 function showToast(msg) {
   const t = document.createElement('div');
-  t.className = 'toast';
+  t.className = 'toast-el';
   t.textContent = msg;
   document.body.appendChild(t);
-  setTimeout(() => t.remove(), 3000);
+  setTimeout(()=>t.remove(), 3000);
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-  loadConfig();
-  // Check if Gemini key is set, if not show settings automatically
-  setTimeout(() => {
-    const key = document.getElementById('key-gemini').value;
-    if (!key) {
-      openSettings();
-      // Add a visible alert inside the modal
-      const modal = document.querySelector('.modal');
-      const alert = document.createElement('div');
-      alert.style.cssText = 'background:#ff4d6d;color:white;border-radius:10px;padding:12px 14px;margin-bottom:14px;font-size:13px;font-weight:500;line-height:1.5;';
-      alert.innerHTML = '⚠️ Para usar la app debes pegar tu API Key de Gemini aquí abajo.<br><span style="font-size:11px;font-weight:400;opacity:0.9">Consíguela gratis en: aistudio.google.com/apikey</span>';
-      modal.insertBefore(alert, modal.children[1]);
-    }
-  }, 800);
-});
+// ─── INIT ────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', loadConf);
 </script>
 </body>
 </html>
