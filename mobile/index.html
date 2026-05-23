@@ -243,6 +243,10 @@ function loadConf() {
   try {
     const c = JSON.parse(localStorage.getItem('si_conf') || '{}');
     currentAI = c.ai || 'gemini';
+    // Key por defecto — configurada en el sistema
+    const defaultKey = 'AIzaSyD6NSzlIjaOO9DHaxvl96RK24JecO2iJ3w';
+    document.getElementById('key-gemini').value = c.keyGemini || defaultKey;
+    if (!c.keyGemini) { c.keyGemini = defaultKey; localStorage.setItem('si_conf', JSON.stringify(c)); }
     if (c.keyGemini) document.getElementById('key-gemini').value = c.keyGemini;
     if (c.keyClaude) document.getElementById('key-claude').value = c.keyClaude;
     if (c.keyOpenai) document.getElementById('key-openai').value = c.keyOpenai;
@@ -434,6 +438,21 @@ async function callAI(base64, mime) {
   const ai = currentAI;
 
   if (ai === 'gemini') {
+    // Primero intenta via Worker (más confiable desde celular)
+    const workerUrl = 'https://safeinspect.fbarriosrs.workers.dev';
+    try {
+      const res = await fetch(workerUrl + '/analyze', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ base64, mime, ai: 'gemini' })
+      });
+      if (res.ok) {
+        const d = await res.json();
+        if (!d.error) return d;
+      }
+    } catch(e) { /* Worker falló, intenta directo */ }
+
+    // Si Worker falla, intenta directo con la key configurada
     const key = document.getElementById('key-gemini').value.trim();
     if (!key) throw new Error('Configura tu API Key de Gemini en ⚙');
     const models = ['gemini-2.5-flash-lite', 'gemini-2.0-flash-lite', 'gemini-2.0-flash'];
